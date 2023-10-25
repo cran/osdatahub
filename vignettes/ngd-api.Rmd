@@ -1,0 +1,547 @@
+---
+title: "Using the NGD Features API with R"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ngd-api}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+The National Geographic Database (NGD) Features API provides access to Ordnance
+Survey's next generation NGD data. The NGD Features API is a premium or public
+sector product only. The [NGD Features API](https://www.ordnancesurvey.co.uk/business-government/products/os-ngd-api-features)
+allows for programmatic access to NGD data in `GeoJSON` format. For `R`
+developers, `osdatahub` library wraps the functionality of the NGD Features API
+to make it easy to get data from Ordnance Survey.
+
+> Not using `R`? There are [Python](https://github.com/OrdnanceSurvey/osdatahub)
+and [JavaScript](https://github.com/OrdnanceSurvey/osdatahub-js) versions of
+`osdatahub`.
+
+## 1. Getting Started
+
+### Importing the `osdatahub` package
+
+Once the package is installed within `R`, import the library.
+
+
+```r
+library(osdatahub)
+```
+
+### Importing your OS Data Hub API Key
+
+In order to access the NGD, you must first have an OS Data Hub API key. A
+notebook explaining the process of registering an account and getting an API key
+is available to read
+[here](https://github.com/OrdnanceSurvey/osdatahub/blob/master/Examples/Setting%20up%20an%20API%20key.ipynb).
+When you're choosing which APIs you want to add to your project, you must select
+"OS NGD API - Features" to use NGD data.
+
+Once you have an API key, you can load your API key in by either passing it in
+as a string to functions in `osdatahub`, or setting it as an environment
+variable. While you can store  your API key as a string variable in your
+scripts, you want to protect your API key and not share it with others.
+
+
+```r
+# Option 1.
+# Create an environment variable with your API key.
+# This function is available in the osdatahub package.
+set_os_key('YOUR API KEY HERE')
+```
+
+Alternatively, you can add the environment variable manually in a file called
+`.Renviron`, typically in your home directory.
+
+
+```r
+# Option 2.
+# Enter the following command in the R console.
+file.edit("~/.Renviron")
+```
+
+The file looks something like:
+
+```
+VAR1 = value1
+VAR2 = value2
+```
+
+Add a variable named: `OS_API_KEY`. Note that `.Renviron` is processed on
+start-up, so restart `R` to see changes.
+Environment variables are available in every running R process, and can be read
+by any other program on your computer. More secure options see the [`keyring` package](https://keyring.r-lib.org/index.html).
+
+### Import the `osdatahub` package
+
+To access the NGD API functions from `osdatahub`, write the following:
+
+
+```r
+library(osdatahub)
+```
+
+## 2. Discovering Collections
+
+The NGD contains multiple themes and collections:
+
+* A `theme` is a family of `collections`, for example, there is a theme called
+'Buildings'.
+* A `collection` is a group of features. The Buildings theme contains two
+collections: 'BuildingLine' and 'BuildingPart'.
+
+You can read more about the NGD Features API's themes and collections in the
+[Technical Specification](https://osdatahub.os.uk/docs/ofa/technicalSpecification).
+
+To quickly retrieve a data frame of available data, you can query the API
+directly:
+
+
+```r
+ngd_collections <- list_ngd_collections(simple = FALSE)
+```
+
+This will returna a data.frame object, which we can then iterate through to
+return metadata about each collection.
+
+
+```r
+for(i in 1:nrow(ngd_collections)){
+  collection <- ngd_collections[i, ]
+
+  print(paste0(collection$title, '(', collection$id, ')'))
+}
+#> [1] "Building v1(bld-fts-building-1)"
+#> [1] "Building Line v1(bld-fts-buildingline-1)"
+#> [1] "Building Part v1(bld-fts-buildingpart-1)"
+#> [1] "Named Area v1(gnm-fts-namedarea-1)"
+#> [1] "Named Point v1(gnm-fts-namedpoint-1)"
+#> [1] "Land v1(lnd-fts-land-1)"
+#> [1] "Landform v1(lnd-fts-landform-1)"
+#> [1] "Landform Line v1(lnd-fts-landformline-1)"
+#> [1] "Landform Point v1(lnd-fts-landformpoint-1)"
+#> [1] "Land Point v1(lnd-fts-landpoint-1)"
+#> [1] "Site v1(lus-fts-site-1)"
+#> [1] "Site Access Location v1(lus-fts-siteaccesslocation-1)"
+#> [1] "Site Routing Point v1(lus-fts-siteroutingpoint-1)"
+#> [1] "Compound Structure v1(str-fts-compoundstructure-1)"
+#> [1] "Structure v1(str-fts-structure-1)"
+#> [1] "Structure Line v1(str-fts-structureline-1)"
+#> [1] "Structure Point v1(str-fts-structurepoint-1)"
+#> [1] "Cartographic Rail Detail v1(trn-fts-cartographicraildetail-1)"
+#> [1] "Rail v1(trn-fts-rail-1)"
+#> [1] "Road Line v1(trn-fts-roadline-1)"
+#> [1] "Road Track Or Path v1(trn-fts-roadtrackorpath-1)"
+#> [1] "Connecting Link v1(trn-ntwk-connectinglink-1)"
+#> [1] "Connecting Node v1(trn-ntwk-connectingnode-1)"
+#> [1] "Ferry Link v1(trn-ntwk-ferrylink-1)"
+#> [1] "Ferry Node v1(trn-ntwk-ferrynode-1)"
+#> [1] "Ferry Terminal v1(trn-ntwk-ferryterminal-1)"
+#> [1] "Path v1(trn-ntwk-path-1)"
+#> [1] "Path Link v1(trn-ntwk-pathlink-1)"
+#> [1] "Path Node v1(trn-ntwk-pathnode-1)"
+#> [1] "Pavement Link v1(trn-ntwk-pavementlink-1)"
+#> [1] "Railway Link v1(trn-ntwk-railwaylink-1)"
+#> [1] "Railway Link Set v1(trn-ntwk-railwaylinkset-1)"
+#> [1] "Railway Node v1(trn-ntwk-railwaynode-1)"
+#> [1] "Road v1(trn-ntwk-road-1)"
+#> [1] "Road Junction v1(trn-ntwk-roadjunction-1)"
+#> [1] "Road Link v1(trn-ntwk-roadlink-1)"
+#> [1] "Road Link v2(trn-ntwk-roadlink-2)"
+#> [1] "Road Node v1(trn-ntwk-roadnode-1)"
+#> [1] "Street v1(trn-ntwk-street-1)"
+#> [1] "Average And Indicative Speed v1(trn-rami-averageandindicativespeed-1)"
+#> [1] "Highway Dedication v1(trn-rami-highwaydedication-1)"
+#> [1] "Maintenance Area v1(trn-rami-maintenancearea-1)"
+#> [1] "Maintenance Line v1(trn-rami-maintenanceline-1)"
+#> [1] "Maintenance Point v1(trn-rami-maintenancepoint-1)"
+#> [1] "Reinstatement Area v1(trn-rami-reinstatementarea-1)"
+#> [1] "Reinstatement Line v1(trn-rami-reinstatementline-1)"
+#> [1] "Reinstatement Point v1(trn-rami-reinstatementpoint-1)"
+#> [1] "Restriction v1(trn-rami-restriction-1)"
+#> [1] "Routing Hazard v1(trn-rami-routinghazard-1)"
+#> [1] "RoutingStructure v1(trn-rami-routingstructure-1)"
+#> [1] "Special Designation Area v1(trn-rami-specialdesignationarea-1)"
+#> [1] "Special Designation Line v1(trn-rami-specialdesignationline-1)"
+#> [1] "Special Designation Point v1(trn-rami-specialdesignationpoint-1)"
+#> [1] "Inter Tidal Line v1(wtr-fts-intertidalline-1)"
+#> [1] "Tidal Boundary v1(wtr-fts-tidalboundary-1)"
+#> [1] "Water v1(wtr-fts-water-1)"
+#> [1] "Water Point v1(wtr-fts-waterpoint-1)"
+#> [1] "Water Link v1(wtr-ntwk-waterlink-1)"
+#> [1] "Water Link Set v1(wtr-ntwk-waterlinkset-1)"
+#> [1] "Water Node v1(wtr-ntwk-waternode-1)"
+```
+
+## 3. Loading NGD Data into a Spatial Data Frame
+
+We'll now walk through the process of acquiring data from the NGD Building Part
+collection (`bld-fts-buildingpart-1`) and importing this data into a an object
+of type `sf`.
+
+### Requesting NGD Data
+
+To get the first 100 features in the collection, you simply need to query use
+the NGD query function:
+
+
+```r
+collection <- 'bld-fts-buildingpart-1'
+
+# make the query and contact the API
+# reduce the number of features returned for the example
+features <- query_ngd(collection = collection, max_results = 4)
+```
+
+The API returns an OGC-compliant GeoJSON, which is easy to import into other
+libraries for analysis.
+
+### Importing into a spatial data frame
+
+If you haven't already, install and import the `sf` library:
+
+
+```r
+library(sf)
+#> Linking to GEOS 3.9.1, GDAL 3.3.2, PROJ 7.2.1; sf_use_s2() is TRUE
+```
+
+And now, import the NGD data.
+
+
+```r
+gdf = st_read(features, quiet = TRUE)
+```
+
+Let's take a look at a preview of the data using `head()`. As you'll see, NGD
+data is rich in attribution:
+
+
+```r
+head(gdf)
+#> Simple feature collection with 4 features and 39 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -3.97032 ymin: 51.59236 xmax: 1.727559 ymax: 55.7426
+#> Geodetic CRS:  WGS 84
+#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
+#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings Modified Attributes      FALSE    Building  2022-09-18     59.200650 Ordnance Survey
+#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings                 New      FALSE    Building  2022-08-26      9.499142 Ordnance Survey
+#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings                 New      FALSE    Building  2022-08-26     15.258750 Ordnance Survey
+#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings                 New      FALSE    Building  2022-08-26     12.806250 Ordnance Survey
+#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
+#> 1 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 2 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 3 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 4 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
+#> 1    Ordnance Survey    Ordnance Survey                <NA>          2006-08-30          2022-06-20                Urban           2006-08-30
+#> 2    Ordnance Survey    Ordnance Survey                <NA>          2015-10-29          2022-04-16                Rural           2015-10-29
+#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-04-01          2022-07-10                Urban           1993-04-01
+#> 4    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2022-02-27                Urban           1993-05-01
+#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                115.16                105.00            2006-08-30          Not Assessed                 10.16                 110.85             2006-08-30
+#> 2                  7.29                  5.39            2015-03-11          Not Assessed                  1.90                   6.21             2015-10-29
+#> 3                 38.63                 34.70            1993-04-01          Not Assessed                  3.93                  37.13             1993-04-01
+#> 4                 72.80                 69.99            1993-05-01          Not Assessed                  2.81                  71.95             1993-05-01
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1             2006-08-30             2006-08-30                   5.85                   <NA>              1991-09-18               2006-08-30
+#> 2             2015-10-29             2015-03-11                   0.82                   <NA>              2015-11-12               2015-03-11
+#> 3             1993-04-01             1993-04-01                   2.43                   <NA>              1993-04-01               1993-04-01
+#> 4             1993-05-01             1993-05-01                   1.96                   <NA>              1993-05-01               1993-05-01
+#>   oslandcover_evidencedate versionavailablefromdate                       geometry
+#> 1               2006-08-30      2022-09-19 01:00:00 POLYGON ((-3.970308 55.7425...
+#> 2               2015-03-11      2022-08-27 01:00:00 POLYGON ((1.727559 52.66142...
+#> 3               1993-04-01      2022-08-27 01:00:00 POLYGON ((0.1941514 51.5924...
+#> 4               1993-05-01      2022-08-27 01:00:00 POLYGON ((-1.454721 52.3961...
+```
+
+Alternatively, it's possible to return an `sf` object directly from the NGD
+query function:
+
+
+```r
+# retrieve features and automatically convert to spatial data frame
+features <- query_ngd(collection = collection,
+                      max_results = 4,
+                      returnType = 'sf')
+
+head(features)
+#> Simple feature collection with 4 features and 39 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -3.97032 ymin: 51.59236 xmax: 1.727559 ymax: 55.7426
+#> Geodetic CRS:  WGS 84
+#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
+#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings Modified Attributes      FALSE    Building  2022-09-18     59.200650 Ordnance Survey
+#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings                 New      FALSE    Building  2022-08-26      9.499142 Ordnance Survey
+#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings                 New      FALSE    Building  2022-08-26     15.258750 Ordnance Survey
+#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings                 New      FALSE    Building  2022-08-26     12.806250 Ordnance Survey
+#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
+#> 1 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 2 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 3 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 4 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
+#> 1    Ordnance Survey    Ordnance Survey                <NA>          2006-08-30          2022-06-20                Urban           2006-08-30
+#> 2    Ordnance Survey    Ordnance Survey                <NA>          2015-10-29          2022-04-16                Rural           2015-10-29
+#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-04-01          2022-07-10                Urban           1993-04-01
+#> 4    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2022-02-27                Urban           1993-05-01
+#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                115.16                105.00            2006-08-30          Not Assessed                 10.16                 110.85             2006-08-30
+#> 2                  7.29                  5.39            2015-03-11          Not Assessed                  1.90                   6.21             2015-10-29
+#> 3                 38.63                 34.70            1993-04-01          Not Assessed                  3.93                  37.13             1993-04-01
+#> 4                 72.80                 69.99            1993-05-01          Not Assessed                  2.81                  71.95             1993-05-01
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1             2006-08-30             2006-08-30                   5.85                   <NA>              1991-09-18               2006-08-30
+#> 2             2015-10-29             2015-03-11                   0.82                   <NA>              2015-11-12               2015-03-11
+#> 3             1993-04-01             1993-04-01                   2.43                   <NA>              1993-04-01               1993-04-01
+#> 4             1993-05-01             1993-05-01                   1.96                   <NA>              1993-05-01               1993-05-01
+#>   oslandcover_evidencedate versionavailablefromdate                       geometry
+#> 1               2006-08-30     2022-09-19T00:00:00Z POLYGON ((-3.970308 55.7425...
+#> 2               2015-03-11     2022-08-27T00:00:00Z POLYGON ((1.727559 52.66142...
+#> 3               1993-04-01     2022-08-27T00:00:00Z POLYGON ((0.1941514 51.5924...
+#> 4               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-1.454721 52.3961...
+```
+
+## 4. Adding Filters
+
+Filters can help you limit the scope of your query using spatial, temporal and
+contextual parameters. The NGD Features API uses Common Query Language (CQL) to
+allow you to filter data using the attribution set of each collection.
+
+* Spatial: `extent`
+
+You can specify any polygon to query by using the functions in `osdatahub` to
+create extents. You can learn more about using extents here.
+
+* Temporal: `state_datetime` and `end_datetime`
+
+If you want to only get features that have a temporal property, you can specify
+date ranges to query within. If youw ant to get features for a single time,
+simply provide the same argument for both parameters.
+
+* Contextual: `cql_filter`
+
+The NGD API supports a generic filter grammar called the Common Query Language
+(CQL) to further filter your query using human readable commands. You can find
+out more about the operations that the API supports in the Queryables section of
+the [Technical
+Specification](https://osdatahub.os.uk/docs/ofa/technicalSpecification). The CQL
+filter allows you to specify specific properties for features as well as spatial
+filters.
+
+In addition, the `osdatahub` package permits you to specify the maximum number
+of features to return (by default, 100 features):
+
+* `max_results`
+
+Allows you to specify the maximum number of features you'd like to receive.
+Default is 100.
+
+* `offset`
+
+Skips past the specified number of features in the collection. Default is 0.
+
+### Specifying an Extent (Bounding Box)
+
+In our case, we want to get features that are only within a certain bounding box
+in Manchester. We can specify an extent based on the geometry, and then pass
+this into the query:
+
+
+```r
+extent = extent_from_bbox(c(-2.244973, 53.476620, -2.237799, 53.480525),
+                          crs = 'CRS84')
+
+# Specify the 'extent' as the first parameter to define the type of query.
+features = query_ngd(x = extent,
+                     collection = collection,
+                     max_results = 4,
+                     returnType = 'sf')
+
+# run this cell to see the contents of 'features'
+features
+#> Simple feature collection with 4 features and 39 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -2.241707 ymin: 53.47689 xmax: -2.23773 ymax: 53.48008
+#> Geodetic CRS:  WGS 84
+#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
+#> 1 02837688-4553-4d32-87aa-10733dad9274    osgb1000024157902 Buildings                 New      FALSE    Building  2022-08-26      21.57975 Ordnance Survey
+#> 2 02c6f2c7-0e25-4224-b4a7-c62c7d476e48    osgb1000024157913 Buildings Modified Attributes      FALSE    Building  2023-06-03     441.13125 Ordnance Survey
+#> 3 0364fa8b-024a-4078-ae13-4a3e21c5e744    osgb1000024155721 Buildings                 New      FALSE    Building  2022-08-26     173.96250 Ordnance Survey
+#> 4 04b6b1d7-2a73-4173-b953-20c3ef2e6ce7 osgb5000005290155401 Buildings Modified Attributes      FALSE    Building  2022-09-26      45.44059            <NA>
+#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
+#> 1 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 2 Surface Level  Commercial Activity: Retail                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 3 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
+#> 4 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey              <NA>
+#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
+#> 1    Ordnance Survey    Ordnance Survey                <NA>          2016-10-26          2021-04-19                Urban           1993-05-01
+#> 2    Ordnance Survey    Ordnance Survey                <NA>          2010-04-13          2021-04-19                Urban           2010-04-13
+#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2021-04-19                Urban           1993-05-01
+#> 4    Ordnance Survey    Ordnance Survey                <NA>          2021-11-30                <NA>                Urban           2021-11-30
+#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                 68.98                 43.34            2016-10-04          Not Assessed                 25.64                  66.54             1993-05-01
+#> 2                 67.69                 44.22            2010-04-13          Not Assessed                 23.47                  60.87             2010-04-13
+#> 3                 57.17                 42.16            1993-05-01          Not Assessed                 15.01                  52.83             1993-05-01
+#> 4                    NA                    NA            2021-11-30                  <NA>                    NA                     NA             2021-11-30
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1             1993-05-01             1993-05-01                  23.20                   <NA>              1993-05-01               1993-05-01
+#> 2             2010-04-13             2010-04-13                  16.65                   <NA>              1993-05-01               2010-04-13
+#> 3             1993-05-01             1993-05-01                  10.67                   <NA>              1993-05-01               1993-05-01
+#> 4             2021-11-30             2021-11-30                     NA                   <NA>              2021-11-30               2021-11-30
+#>   oslandcover_evidencedate versionavailablefromdate                       geometry
+#> 1               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-2.240982 53.4790...
+#> 2               2010-04-13     2023-06-04T00:00:00Z POLYGON ((-2.241351 53.4798...
+#> 3               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-2.240074 53.4781...
+#> 4               2021-11-30     2022-09-27T00:00:00Z POLYGON ((-2.23773 53.47692...
+```
+
+### Custom Paging Parameters
+
+By default, `osdatahub` will return a maximum 100 features to a query - starting
+at zero. This behaviour can be altered by specifying `max_results` and `offset`
+parameters. *We'll be building on the previous example, specifying the same
+extent as before...*
+
+
+```r
+# returns a maximum of 4 results (features 1 to 4)
+features = query_ngd(extent,
+                     collection = collection,
+                     max_results = 4)
+
+# returns a maximum of 4 results (features 101 to 104)
+features = query_ngd(extent,
+                     collection = collection,
+                     offset = 100,
+                     max_results = 4,
+                     returnType = 'sf')
+
+# run this cell to see the contents of 'features'
+features
+#> Simple feature collection with 4 features and 39 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -2.2437 ymin: 53.47765 xmax: -2.238997 ymax: 53.47982
+#> Geodetic CRS:  WGS 84
+#>                                   osid                 toid     theme changetype isobscured description versiondate geometry_area   height_source physicallevel
+#> 1 4e1a5c52-aa3f-4c99-a216-f3ad0b5aff83    osgb1000024155766 Buildings        New      FALSE    Building  2022-08-26      64.48625 Ordnance Survey Surface Level
+#> 2 50b0ab14-2a1a-41ae-8425-6ddafbddb575    osgb1000024155767 Buildings        New      FALSE    Building  2022-08-26     457.61400 Ordnance Survey Surface Level
+#> 3 52335576-4e7b-47f8-ab79-a644172032f0    osgb1000024155700 Buildings        New      FALSE    Building  2022-08-26     166.62625 Ordnance Survey Surface Level
+#> 4 537d6ba9-5902-4e6b-b193-ad604a1570b9 osgb1000002517038005 Buildings        New      FALSE    Building  2022-08-26    1018.93900 Ordnance Survey Surface Level
+#>                 oslandusetiera oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate description_source
+#> 1  Commercial Activity: Retail             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
+#> 2  Commercial Activity: Retail             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
+#> 3 Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
+#> 4 Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
+#>   oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate absoluteheightmaximum
+#> 1    Ordnance Survey                <NA>          1993-05-01          2021-04-19                Urban           1993-05-01                 63.80
+#> 2    Ordnance Survey                <NA>          2002-10-08          2021-04-19                Urban           2002-10-08                 69.45
+#> 3    Ordnance Survey                <NA>          2010-04-28          2021-04-19                Urban           2010-04-28                 63.78
+#> 4    Ordnance Survey                <NA>          2007-03-22          2021-04-19                Urban           2007-03-22                 70.57
+#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate oslandcover_updatedate
+#> 1                 41.84            1993-05-01          Not Assessed                 21.96                  62.62             1993-05-01             1993-05-01
+#> 2                 41.20            2002-10-08          Not Assessed                 28.25                  61.31             2002-10-08             2002-10-08
+#> 3                 42.59            2010-04-28          Not Assessed                 21.19                  61.16             2010-04-28             2010-04-28
+#> 4                 41.34            2007-03-22          Not Assessed                 29.23                  59.01             2007-03-22             2007-03-22
+#>   oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate oslandcover_evidencedate
+#> 1             1993-05-01                  20.78                   <NA>              1993-05-01               1993-05-01               1993-05-01
+#> 2             2002-10-08                  20.11                   <NA>              1993-05-01               2002-10-08               2002-10-08
+#> 3             2010-04-28                  18.57                   <NA>              1993-05-01               2010-04-28               2010-04-28
+#> 4             2007-03-22                  17.67                   <NA>              2007-03-22               2007-03-22               2007-03-22
+#>   versionavailablefromdate                       geometry
+#> 1     2022-08-27T00:00:00Z POLYGON ((-2.241327 53.4780...
+#> 2     2022-08-27T00:00:00Z POLYGON ((-2.24123 53.47778...
+#> 3     2022-08-27T00:00:00Z POLYGON ((-2.238997 53.4783...
+#> 4     2022-08-27T00:00:00Z POLYGON ((-2.243258 53.4794...
+```
+
+### Applying CQL Filters
+
+Common Query Language (CQL) filters are a handy way in which you can tailor the
+results of your query to match specific needs. More information on CQL filters
+can be found
+[here](https://labs.os.uk/public/osngd/os-ngd-api-features/).
+We can pass a filter in the API using the `filter` parameter.
+
+
+```r
+# Building off the same extent covering Manchester, filtering by buildings
+# larger than or equal to 20m^2 and with a maximum height greater than 60m.
+
+# At the time of writing, this returns 7 features (buildings)
+
+features = query_ngd(extent,
+                     collection = collection,
+                     cql_filter='geometry_area>=200 AND relativeheightmaximum>60',
+                     returnType = 'sf')
+
+# run this cell to see the contents of 'features'
+features
+#> Simple feature collection with 7 features and 39 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -2.243508 ymin: 53.47677 xmax: -2.237916 ymax: 53.48044
+#> Geodetic CRS:  WGS 84
+#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
+#> 1 40fa2462-4c01-48d4-bcf1-5179efb56027 osgb5000005134737612 Buildings                 New      FALSE    Building  2022-08-26     2122.6936 Ordnance Survey
+#> 2 41ab80d3-28ca-460f-9afe-04671aa2807a osgb1000002517080496 Buildings                 New      FALSE    Building  2022-08-26      687.8187 Ordnance Survey
+#> 3 8a98fdc7-bc44-4ac0-8c20-aac5c7ddcf30 osgb1000002517080494 Buildings                 New      FALSE    Building  2022-08-26      206.9899 Ordnance Survey
+#> 4 8ce5ac53-d4ee-492d-9b6d-56b069252cbe    osgb1000024155687 Buildings Modified Attributes      FALSE    Building  2023-06-22      748.7997 Ordnance Survey
+#> 5 a1007205-9f06-4a36-bcba-45de245d9faf osgb5000005134737702 Buildings                 New      FALSE    Building  2022-08-26      380.3845 Ordnance Survey
+#> 6 af43ce9a-18d2-47d2-9744-fdc89f7c241c osgb5000005267089134 Buildings                 New      FALSE    Building  2022-08-26     1590.4881 Ordnance Survey
+#> 7 cfe4934e-8360-40bb-81eb-5f49d240c2b8 osgb5000005275364197 Buildings Modified Attributes      FALSE    Building  2023-06-22     1143.7811 Ordnance Survey
+#>   physicallevel                                   oslandusetiera oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source
+#> 1 Surface Level Commercial Activity: Industrial Or Manufacturing             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 2 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 3 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 4 Surface Level                              Government Services             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 5 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 6 Surface Level Commercial Activity: Industrial Or Manufacturing             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 7 Surface Level               Temporary Or Holiday Accommodation             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#>   height_updatedate description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
+#> 1        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2017-09-26          2021-04-19                Urban           2014-09-26
+#> 2        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2009-06-25          2021-04-19                Urban           2009-06-25
+#> 3        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2009-06-25          2021-04-19                Urban           2009-06-25
+#> 4        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2014-11-19          2021-04-19                Urban           2010-03-18
+#> 5        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2014-10-13          2021-04-19                Urban           2014-10-13
+#> 6        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2020-07-16          2021-04-19                Urban           2020-07-16
+#> 7        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2021-01-13          2021-04-19                Urban           2021-01-13
+#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                102.52                 38.65            2017-09-26          Not Assessed                 63.87                  94.76             2014-09-26
+#> 2                105.48                 43.20            2009-06-25          Not Assessed                 62.28                 100.70             2009-06-25
+#> 3                104.38                 43.17            2009-06-25          Not Assessed                 61.21                  88.38             2009-06-25
+#> 4                116.73                 43.13            2013-11-04          Not Assessed                 73.60                 109.57             2010-03-18
+#> 5                 99.96                 39.25            2014-10-13          Not Assessed                 60.71                  94.68             2014-10-13
+#> 6                102.53                 38.69            2020-07-16          Not Assessed                 63.84                  95.19             2020-07-16
+#> 7                112.00                 40.06            2021-01-13          Not Assessed                 71.94                 107.00             2021-01-13
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1             2014-09-26             2013-11-04                  56.11                   <NA>              2014-10-21               2013-11-04
+#> 2             2009-06-25             2009-06-25                  57.50                   <NA>              2009-06-25               2009-06-25
+#> 3             2009-06-25             2009-06-25                  45.21                   <NA>              2009-06-25               2009-06-25
+#> 4             2010-03-18             2010-03-18                  66.44                   <NA>              1993-05-01               2010-03-18
+#> 5             2014-10-13             2014-10-13                  55.43                   <NA>              2014-10-21               2014-10-13
+#> 6             2020-07-16             2020-07-16                  56.50                   <NA>              2020-07-16               2020-07-16
+#> 7             2021-01-13             2021-01-13                  66.94                   <NA>              2021-01-13               2021-01-13
+#>   oslandcover_evidencedate versionavailablefromdate                       geometry
+#> 1               2013-11-04     2022-08-27T00:00:00Z POLYGON ((-2.242897 53.4772...
+#> 2               2009-06-25     2022-08-27T00:00:00Z POLYGON ((-2.242983 53.4804...
+#> 3               2009-06-25     2022-08-27T00:00:00Z POLYGON ((-2.242827 53.4801...
+#> 4               2010-03-18     2023-06-23T00:00:00Z POLYGON ((-2.238278 53.4780...
+#> 5               2014-10-13     2022-08-27T00:00:00Z POLYGON ((-2.242894 53.4777...
+#> 6               2020-07-16     2022-08-27T00:00:00Z POLYGON ((-2.2422 53.47719,...
+#> 7               2021-01-13     2023-06-23T00:00:00Z POLYGON ((-2.241926 53.4779...
+```
+
+## 5. Conclusion
+
+We hope this short introduction to the `osdatahub` package's new NGD
+capabilities has been useful! You can find further resources to assist you on
+your OS API development journal at:
+[https://github.com/OrdnanceSurvey/os-api-resources](https://github.com/OrdnanceSurvey/os-api-resources)

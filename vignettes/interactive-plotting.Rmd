@@ -1,0 +1,132 @@
+---
+title: "Interactive Plotting for API Results"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{interactive-plotting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+Interactive maps are a great way to present geospatial data, allowing people to
+zoom, pan, and click on results. [`leaflet`](https://rstudio.github.io/leaflet/)
+is an `R` library for making interactive maps built on top of a JavaScript
+mapping library called Leaflet. The results of queries made using the
+`osdatahub` package are returned in GeoJSON format, which is an ideal input for
+interactive mapping libraries with JavaScript underpinnings, and the OS Maps API
+can supply tiles for basemaps giving that all important context to your data.
+
+
+```r
+library(osdatahub)
+library(leaflet)
+library(sf)
+```
+
+## Polygons with Popups
+
+The example uses NGD Water features to show how to plot the API results onto an
+interactive map and provide additional information about the data to users
+through popups.
+
+### Get Data from the API
+
+
+```r
+# Choose data
+collection <- 'wtr-fts-water-1'
+
+# Define query extent. leaflet maps expect shapes in WGS 1984,
+# the extent is specified in degrees longitude and latitude
+W <- -1.328
+S <- 50.979
+E <- -1.322
+N <- 50.9815
+
+crs <- 'CRS84'
+extent <- extent_from_bbox(c(W, S, E, N), crs = crs)
+
+# Query API
+surface_water <- query_ngd(extent,
+                           collection = collection,
+                           crs = crs,
+                           max_results = 100000)
+```
+
+### Define the Map
+
+The first step in creating a leaflet map is to create a map object. This defines
+the location in view when the map first loads. Leaflet maps always use
+coordinates in the WGS84 coordinate reference system, so the starting location
+must be specified in degrees latitude and longitude.
+
+
+```r
+# m is the map object all other layers will be added to.
+m <- leaflet() %>%
+  setView(lng = -1.325, lat = 50.98, zoom = 16)
+```
+
+### Add a Basemap
+
+This defines the base map. You can access base map tiles via the OS Maps API. By
+adding the Maps API to the same project as the NGD Features API, you can use the
+same key for both. To find out more about API keys, check out the "Setting up an
+API key" example.
+
+
+```r
+LAYER <- 'Outdoor_3857'
+ATTR <- paste0('Contains OS data © Crown copyright and database right ',
+               format(Sys.Date(), "%Y"))
+
+m <- m %>% addTiles(urlTemplate = paste0('https://api.os.uk/maps/raster/v1/zxy/',
+                                         LAYER ,
+                                         '/{z}/{x}/{y}.png?key=',
+                                         get_os_key()),
+                    attribution = ATTR,
+                    group = 'OS Maps Outdoor')
+```
+
+### Add the Data
+
+Add the API results to the map with a popup showing the area of each polygon.
+It's possible to add a simple overlay using `addGeoJSON()`; however, it's easier
+if the query results are parsed to create an `sf` object. This will give us more
+control to add a popup to each feature.
+
+
+```r
+df <- st_read(surface_water, crs = st_crs('CRS:84'), quiet = TRUE)
+popup <- paste0('Area (m2):', round(df$geometry_area, 1))
+
+m <- m %>%
+      addPolygons(data = df,
+                  group = 'Surface Water',
+                  popup = popup)
+```
+
+### Add Bounding Box
+
+
+```r
+bbox <- extent$polygon
+
+# Add the bounding box to the map.
+m <- m %>%
+      addPolygons(data = bbox,
+                  group = 'Bounding Box',
+                  fill = FALSE,
+                  color = 'black',
+                  opacity = 0.9,
+                  weight = 1.2,
+                  dashArray = 10)
+
+# Add ability to toggle layers
+m <- m %>% addLayersControl(overlayGroups = c("OS Maps Outdoor", "Surface Water", "Bounding Box"))
+
+# View the map
+m
+```
+

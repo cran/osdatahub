@@ -1,0 +1,352 @@
+---
+title: "How to Define Extents for API Queries"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Defining Extents for API Queries}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+To restrict your API query to a certain area, you'll need to define an "extent".
+The extent object is represented in `osdatahub` R package as an object of type
+`qExtent` which can convert itself into the format needed by the API query. You
+can use an existing polygon to create your extent by specifying the coordinates
+yourself, or by using a polygon from another source, such as a shapefile.
+
+There are several convenience functions to create common extent types, which
+don't require you to already have a polygon:
+
+* `extent_from_bbox()`
+* `extent_from_radius()`
+* `extent_from_bng()`
+* `extent_from_ons_code()`
+
+## Extent from Polygon
+
+If you have a polygon that defines the area you would like to query, you can
+pass this to `extent_from_polygon()`. This function will accept well-known text
+(WKT) strings, simple features objects from the [`sf`
+package](https://cran.r-project.org/package=sf) (types `sf` or
+`sfc`), or polygon objects from the [`geos`
+package](https://cran.r-project.org/package=geos). This example
+shows how you can construct an extent to query the NGD Features API for all the
+buildings within a rectangle.
+
+
+```r
+library(osdatahub)
+library(geos)
+```
+
+
+```r
+# Set an environment variable with you OS Data Hub API key.
+# set_os_key('[YOUR KEY]')
+
+# Define a rectangle by coordinates using `geos`.
+xcoords <- c(435000, 437500, 437500, 435000, 435000)
+ycoords <- c(114500, 114500, 116000, 116000, 114500)
+
+rectangle <- geos::geos_make_polygon(x = xcoords, y = ycoords)
+
+# Need to define the type of coordinates you are using.
+# These are British National Grid, which using EPSG code 27700.
+crs <- 'EPSG:27700'
+
+# Create the extent
+polygon_extent <- extent_from_polygon(rectangle,
+                                      crs = crs)
+```
+
+The extent is a type of list and it stores its polygon geometry as an `sf`
+object in an item named `polygon`, so we can plot it on a map to check it covers
+the area we wanted.
+
+
+```r
+library(sf)
+library(tmap)
+library(maptiles)
+
+# sf polygon of extent
+polygon <- polygon_extent$polygon
+
+# define the tile server parameters
+osmaps <- list(src = 'OS Maps',
+               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key=XXXXXX',
+               sub = '',
+               cit = 'Contains OS data © Crown copyright and database rights, 2023.')
+
+# download tiles and compose basemap raster
+poly_maps <- get_tiles(x = polygon,
+                       provider = osmaps,
+                       crop = FALSE,
+                       cachedir = tempdir(),
+                       apikey = get_os_key(),
+                       verbose = FALSE)
+
+# Plot the extent
+plt <- tm_shape(poly_maps, bbox = polygon) +
+        tm_rgb() +
+        tm_shape(polygon) +
+        tm_borders(lty = 'dashed', lwd = 2) +
+        tm_grid(labels.format = list(big.mark = ""),
+                lines = FALSE) +
+        tm_credits(osmaps$cit)
+
+plt
+```
+
+<img src="fig-extent-from-poly-1.png" style="display: block; margin: auto;" />
+
+
+```r
+# The extent is then passed to the API to use in the query
+results <- query_ngd(polygon_extent,
+                     collection = 'bld-fts-buildingpart-1',
+                     max_results = 100000,
+                     returnType = 'sf',
+                     key = get_os_key())
+
+# When querying a large area or a dense data product,
+# you may need to increase the max results limit to get all the data
+```
+
+
+```r
+# Plot the results on the existing map
+plt <- plt +
+  tm_shape(results) +
+  tm_fill(col = 'darkblue')
+
+plt
+```
+
+<img src="fig-extent-with-buildings-1.png" style="display: block; margin: auto;" />
+
+## Extent from Bounding Box
+
+If your extent is rectangular, instead of specifying all the coordinates and
+constructing a polygon, you can use the `extent_from_bbox()` function, which
+only requires the coordinates of the South-West and North-East corners in the
+order (west, south, east, north). This results in the same extent object as the
+previous example, just in fewer lines of code.
+
+You might use this if you want to return data that covers an area currently
+visible in a web map, or if you want to match the bounds of another data source,
+such as a raster, geodataframe or shapefile.
+
+
+```r
+# Using the same coordinates as the previous example
+west <- 435000
+south <- 114500
+east <- 437500
+north <- 116000
+
+bbox_extent <- extent_from_bbox(c(west, south, east, north),
+                                crs = 'EPSG:27700')
+
+# Check that both approaches give the same result
+print(paste0('Extents are equal: ', bbox_extent$wkt == polygon_extent$wkt))
+#> [1] "Extents are equal: TRUE"
+```
+
+## Extent from Radius
+
+`extent_from_radius()` is a convenient way to query for data within a certain
+distance of a point location. This method can only used with `crs =
+'EPSG:27700'` and `crs = 'EPSG:3857'`, which are projected coordinate systems
+and use units of meters. If you are using longitude and latitude, you will need
+to convert to one of the two supported projections first.
+
+This example shows how you can query for all road nodes within 200m of a point
+location.
+
+
+```r
+point <- c(441317, 112165)
+distance <- 200
+
+radial_extent <- extent_from_radius(centre = point,
+                                    radius = distance,
+                                    crs = 'EPSG:27700')
+
+results <- query_ngd(radial_extent,
+                     collection = 'trn-ntwk-roadnode-1',
+                     crs = 'EPSG:27700',
+                     max_results = 10000,
+                     returnType = 'sf')
+
+print(paste0('There are ', nrow(results), ' roadway nodes within ',
+             distance, 'm of (', point[1], ', ', point[2], ').'))
+#> [1] "There are 107 roadway nodes within 200m of (441317, 112165)."
+```
+
+
+```r
+
+# download tiles and compose basemap raster
+poly_maps <- get_tiles(x = radial_extent$polygon,
+                       provider = osmaps,
+                       crop = FALSE,
+                       cachedir = tempdir(),
+                       apikey = get_os_key(),
+                       verbose = FALSE)
+
+# Plot the query results
+plt <- tm_shape(poly_maps, bbox = radial_extent$polygon) +
+        tm_rgb() +
+        tm_shape(radial_extent$polygon) +
+        tm_borders(lty = 'dashed', lwd = 2) +
+        tm_shape(results) +
+        tm_dots(col = 'darkblue', size = .5) +
+        tm_grid(labels.format = list(big.mark = ""),
+                lines = FALSE) +
+        tm_credits(osmaps$cit)
+
+plt
+```
+
+<img src="fig-extent-from-radius-1.png" style="display: block; margin: auto;" />
+
+## Extent from National Grid Code
+
+The National Grid provides a unique spatial reference system for Great Britain
+across multiple spatial scales. A series of grid squares measuring 100km covers
+Great Britain. These squares are further divided into smaller squares. The
+smaller squares are identified by numbers of 'eastings' and 'northings'.
+Combining the letters and numbers generates a British National Grid (BNG) code
+that can identify a grid square location. More information on BNG codes is
+available
+[here](https://www.ordnancesurvey.co.uk/documents/resources/guide-to-nationalgrid.pdf).
+
+The BNG square can be represented as a polygon geometry where the length of the
+side equal to the scale of the grid reference.
+
+
+```r
+# Identify a BNG square
+bngcode <- 'SU3715'
+bng_extent <- extent_from_bng(bngcode)
+
+# The CRS will always be EPSG:27700 for BNG extents.
+print(bng_extent)
+#> OS Data Hub Query Extent
+#> Created from: BNG
+#> Bounding box: 437000 115000 438000 116000
+#> Coord. Ref. Sys.: epsg:27700
+```
+
+
+```r
+# Query the API
+results <- query_ngd(bng_extent,
+                     collection = 'bld-fts-buildingpart-1',
+                     crs = 'EPSG:27700',
+                     max_results = 10000,
+                     returnType = 'sf')
+```
+
+
+```r
+# download tiles and compose basemap raster
+poly_maps <- get_tiles(x = bng_extent$polygon,
+                       provider = osmaps,
+                       crop = FALSE,
+                       cachedir = tempdir(),
+                       apikey = get_os_key(),
+                       verbose = FALSE)
+
+# Plot the results
+plt <- tm_shape(poly_maps, bbox = bng_extent$polygon) +
+        tm_rgb() +
+        tm_shape(bng_extent$polygon) +
+        tm_borders(lty = 'dashed', lwd = 2) +
+        tm_shape(results) +
+        tm_fill(col = 'darkblue') +
+        tm_grid(labels.format = list(big.mark = ""),
+                lines = FALSE) +
+        tm_credits(osmaps$cit)
+
+plt
+```
+
+<img src="fig-extent-from-bng-1.png" style="display: block; margin: auto;" />
+
+## Extent from ONS Code
+
+The Office for National Statistics maintains a source of official geographies
+for the UK, such as county boundaries, electoral wards, parishes, and census
+output areas. These boundaries are commonly used for data analysis, particularly
+of socio-economic factors. You can automatically define a query extent by using
+the ONS code for the particular area you are interested in, making it easy to
+combine geospatial information with other data sources, such as census records.
+A full list of available codes can be found
+[here](https://statistics.data.gov.uk:443/atlas/resource?uri=http://statistics.data.gov.uk/id/statistical-geography/K02000001).
+This example shows how you can find all the buildings in a particular electoral ward.
+
+
+```r
+# This is the ONS code for the Woolston electoral ward in Southampton.
+ward <- 'E05002470'
+electoral_extent <- extent_from_ons_code(ward)
+
+# The CRS cannot be set when requesting an ONS geography.
+print(electoral_extent)
+#> OS Data Hub Query Extent
+#> Created from: ONS
+#> Bounding box: -1.3843 50.88 -1.3494 50.8992
+#> Coord. Ref. Sys.: crs84
+```
+
+
+```r
+# Query the API
+results <- query_ngd(electoral_extent,
+                     collection = 'bld-fts-buildingpart-1',
+                     crs = 'EPSG:27700',
+                     max_results = 10000,
+                     returnType = 'sf')
+#> Error:
+```
+
+Next we can plot the results, however, the basemap has a CRS of EPSG:3857 and
+the data has a CRS of EPSG:4326, so we need to convert the data so that it
+aligns correctly with the basemap first. We could choose to convert the basemap
+to match the data instead, but it results in a warped looking plot.
+
+
+```r
+results <- st_transform(results, crs = 3857)
+extent_poly <- st_transform(electoral_extent$polygon, crs = 3857)
+```
+
+
+
+```r
+# download tiles and compose basemap raster
+poly_maps <- get_tiles(x = extent_poly,
+                       provider = osmaps,
+                       crop = FALSE,
+                       cachedir = tempdir(),
+                       apikey = get_os_key(),
+                       verbose = FALSE)
+
+# Plot the results
+plt <- tm_shape(poly_maps, bbox = extent_poly) +
+        tm_rgb() +
+        tm_shape(extent_poly) +
+        tm_borders(lty = 'dashed', lwd = 2) +
+        tm_shape(results) +
+        tm_fill(col = 'darkblue') +
+        tm_grid(labels.format = list(big.mark = ""),
+                lines = FALSE) +
+        tm_credits(osmaps$cit)
+
+plt
+```
+
+<img src="fig-extent-from-ons-1.png" style="display: block; margin: auto;" />

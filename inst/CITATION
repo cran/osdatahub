@@ -1,0 +1,9 @@
+bibentry(
+  bibtype       = "Manual",
+  title         = "{osdatahub}: Easier Interaction with the Ordnance Survey Data Hub",
+  author        = person("Ordnance Survey"),
+  organization  = "Ordnance Survey Ltd",
+  year          = 2023,
+  note          = "R package version 0.2.0",
+  url           = "https://osdatahub.os.uk/"
+)

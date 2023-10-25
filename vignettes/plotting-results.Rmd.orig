@@ -1,0 +1,208 @@
+---
+title: "Plotting API Results: sf, tmap, and maptiles"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{plotting-results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "fig-",
+  fig.cap = "",
+  fig.align = "center"
+)
+```
+
+The quickest way to get a plot of your results is by using
+[`sf`](https://cran.r-project.org/package=sf) and its in-built plotting
+functionality. There are many packages within `R` that can be used to generate
+visualizations of geographic data, including
+[`ggplot2`](https://cran.r-project.org/package=ggplot2) and
+[`tmap`](https://cran.r-project.org/package=tmap). The package
+[`maptiles`](https://cran.r-project.org/package=maptiles) lets you add basemaps
+to your plots, giving your data real world context.
+
+## Simple Features Data Frame
+
+The OS Data Hub APIs return GeoJSON, which can be used to make a simple features
+data frame. This type of data frame works in a very similar way to a regular
+`data.frame` in `R`, with the addition of a list-like column of geometry and
+attributes for geospatial data. The `R` package `sf` can be used to create these
+objects. For more information on `sf` see the [technical
+documentation](https://r-spatial.github.io/sf/).
+
+`sf` allows you to quickly visualize the data returned by your API query, using
+the coordinate reference system of the data to accurately plot the spatial
+relationships. Plotting this way can be useful to quickly check your API query
+results are looking like you were expecting, as well as giving you options to
+produce highly polished plots.
+
+This example requests water features along a section of the Glastonbury Canal in
+Somerset from the 'wtr-fts-water-1' collection via the NGD Features API and then
+makes a simple plot to show what was returned.
+
+```{r setup}
+library(osdatahub)
+library(sf)
+```
+
+```{r, tidy=FALSE}
+# Choose data
+collection <- 'wtr-fts-water-1'
+
+# Define query extent
+W <- 342730
+S <- 137700
+E <- 347700
+N <- 141642
+
+crs <- 'EPSG:27700'
+extent <- extent_from_bbox(c(W, S, E, N), crs = crs)
+
+# Query API
+results <- query_ngd(extent,
+                     collection = collection,
+                     crs = crs,
+                     max_results = 100000)
+```
+
+These results are in GeoJSON format. The `sf` package can convert this format
+into a `data.frame` with the appropriate geometry information. Alternatively,
+the `osdatahub` package for `R` provides the option to return the query results
+as a `data.frame` object. Specify the `returnType` argument as 'sf' in
+`query_ngd()`.
+
+```{r}
+results_df <- st_read(results, crs = st_crs(crs), quiet = TRUE)
+```
+We can ignore the warning about setting the CRS in this case because we
+specified the API should return the features in EPSG:27700.
+
+Now it is as simple as calling `plot()` on the data frame, including some
+optional styling parameters, to visualize the results. The in-built plotting
+commands of `sf` are detailed in this
+[vignette](https://r-spatial.github.io/sf/articles/sf5.html).
+
+```{r basic-plot, tidy=FALSE}
+# Plot the query extent
+plot(st_geometry(extent$polygon),
+     lty = 'dashed',
+     main = 'Water features',
+     axes = TRUE,
+     xlab = 'Eastings',
+     ylab = 'Northings')
+
+# Plot the query results
+plot(st_geometry(results_df),
+     col = 'purple',
+     add = TRUE)
+
+mtext('Contains OS data © Crown copyright and database rights, 2023.', side = 1, line = 4)
+```
+
+This plot shows us the features returned form the API and plots them correctly
+in geogrpahic space. Once we've checked the results look sensible, it would be
+nice to see how the feaures relate to the rest of the geography of the area. To
+do this we might want to add a basemap, which we can do using maptiles and tmap.
+
+## maptiles and tmap
+
+[`maptiles`](https://github.com/riatelab/maptiles) downloads and composes images
+from web map tile services. You can use the OS Maps API with maptiles to get a
+variety of different basemaps. Find out more about the OS Maps API
+[here](https://osdatahub.os.uk/docs/wmts/overview).
+[`tmap`](https://r-tmap.github.io/tmap/) is one of the more sophisticated
+mapping and visualisation packages in `R` that is designed to work with `sf`
+objects and can display basemaps.
+
+This first example demonstrates how to create a plot similar to the basic `sf`
+plot using `tmap`.
+
+```{r basic-tmap-plot, tidy=FALSE}
+library(maptiles)
+library(tmap)
+
+# Make the same plot as above, but using tmap
+query_plot <- tm_shape(results_df) +
+  tm_fill(col = 'purple') +
+  tm_borders() +
+  tm_shape(extent$polygon) +
+  tm_borders(lty = 'dashed') +
+  tm_grid(labels.format = list(big.mark = ""),
+                lines = FALSE) +
+  tm_credits('Contains OS data © Crown copyright and database rights, 2023.',
+             position = c("LEFT", "BOTTOM"))
+
+query_plot
+```
+
+To add a basemap we will retrieve the OS Maps tiles using a custom source in
+`maptiles`.
+
+```{r tmap-with-basemap, tidy=FALSE}
+# Define the tile server parameters
+osmaps <- list(src = 'OS Maps',
+               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key=XXXXXX',
+               sub = '',
+               cit = 'Contains OS data © Crown copyright and database rights, 2023.')
+
+# Download tiles and compose basemap raster
+tile_maps <- get_tiles(x = extent$polygon,
+                       provider = osmaps,
+                       crop = FALSE,
+                       cachedir = tempdir(),
+                       apikey = get_os_key(),
+                       verbose = FALSE)
+
+# Add basemap to the tmap
+final_plot <- tm_shape(tile_maps,
+                       bbox = st_bbox(results_df)) +
+                tm_rgb() +
+                query_plot
+
+final_plot
+```
+
+Note that `maptiles` currently only supports tiles in EPSG:3857 projection. The
+package attempts to re-project the basemap to match the CRS of the query
+features. This can cause some distortion in the basemap image. If this warping
+is not acceptable, `osdatahub` provides an alternative interface to query and
+download the tiles in either ESPG:27700 or EPSG:3857. However, it requires more
+advanced processing and some additional packages, such as `terra`.
+
+```{r tmap-with-basemap-2, message=FALSE, tidy=FALSE}
+# Download tiles
+res <- query_maps(extent_from_bbox(st_bbox(results_df),
+                                   crs = 27700),
+                  layer = 'Light_27700',
+                  output_dir = tempdir())
+
+# Convert tiles into georeferenced rasters
+png2rast <- function(path, bbox, crs){
+  img <- png::readPNG(path) * 255
+  img <- terra::rast(img)
+  terra::RGB(img) <- c(1,2,3)
+  terra::ext(img) <- bbox[c(1,3,2,4)]
+  terra::crs(img) <- crs
+
+  return(img)
+}
+
+imgList <- lapply(res, function(t){ png2rast(t$file_path, t$bbox, t$crs) })
+
+# Combine tiles into basemap
+basemap <- do.call(terra::mosaic, imgList)
+
+# Add basemap to the tmap
+base_plot <- tm_shape(basemap,
+                      bbox = results_df) +
+                tm_rgb() +
+                query_plot
+
+base_plot
+```
+
