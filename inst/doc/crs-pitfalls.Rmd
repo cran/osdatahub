@@ -1,0 +1,101 @@
+---
+title: "Common CRS Pitfalls"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CRS Pitfalls}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+When working with `osdatahub` you will notice that some of the functions using
+extents have an argument called `crs`. For example when creating a bounding box
+you need to specify a CRS like this:
+
+
+```r
+extent <- extent_from_bbox(c(-1, -1, 1, 1), crs = "epsg:4326")
+```
+
+The second argument in `extent_from_bbox` is called CRS, which stands for
+"coordinate reference system". A CRS is needed when processing geographic data
+in order to manipulate the coordinates. Typically you won't need to know much
+about the CRS when using `osdatahub`, but there are some common "gotchas" which
+we will describe here.
+
+A CRS may sometimes be referred to as a SRS (spatial reference system) but they
+are the same thing.
+
+In `osdatahub` the CRS is specified as a string in the following format
+"epsg:27700". EPSG stands for European Petroleum Survey Group and 27700
+represents the CRS which Ordnance Survey commonly uses. CRS values used in
+`osdatahub` are: EPSG:27700, EPSG:4326, EPSG:7405, EPSG:3857, and CRS84.
+
+A full description of CRS is not needed to use `osdatahub` but if you are
+interested in that kind of thing this link is useful for grounding your
+understanding
+[https://datacarpentry.org/organization-geospatial/03-crs/](https://datacarpentry.org/organization-geospatial/03-crs/).
+
+## Specifing the wrong bounding box
+
+The most likely pitfall, due to CRS, you may encounter relates to specifying
+your extent when creating it for `osdatahub.`
+
+For example, this is a bounding box is for a portion of Westminster
+
+
+```r
+extent <- extent_from_bbox(c(530034, 180154, 530699, 180381), "epsg:27700")
+```
+
+But a very common mistake is to specify the coordinates in a different CRS to
+the CRS passed to the function. Suppose we made the following error.
+
+
+```r
+# incorrect CRS argument
+extent <- extent_from_bbox(c(530034, 180154, 530699, 180381), "epsg:4326") 
+```
+
+Here we have given the coordinates in the CRS 27700 (eastings and northings
+measured in metres); however we've mistakenly specified the CRS as 4326. The
+same coordinates in different CRS can represent different locations. For this
+example, the bounding box is actually somewhere in the arctic circle, and
+consequently any query for OS data in this region would return an error.
+
+### Sanity checks
+A good way to check if you are using the correct CRS for your coordinates is to
+ensure the coordinates fall within a sensible range.
+
+* "EPSG:27700" - This CRS is called British Nation Grid (BNG) it is used by Ordnance Survey to map the British Isles. In this system x coordinates are in the range -90619.29 to 612435.55 and y is in the range 10097.13 to 1234954.16
+* "EPSG:4326" - called World Geodetic System 1984 (WGS84) is often used by GPS and has the following ranges of values -90.0 to 90.0 and -180 to 180.0. This CRS implies the coordinates are specified in (Latitude, Longitude) order
+* "CRS:84" - is equivalent to EPSG:4326, but the coordinates are specified in (Longitude, Latitude) order
+* "EPSG:3857" - Pseudo-Mercator is used by mapping companies like Google and Open Street Map with values between -85.6 to 85.6 and -180 to 180.0
+
+This means its pretty easy to see if you are using BNG when you should be WGS84
+or Pseudo-Mercator. Differentiating between WGS84, CRS84, and Pseudo-Mercator
+can't be done with this check and will require you to check which CRS you want.
+
+## EPSG:4326 and CRS:84
+
+Another common source of confusion with CRS is EPSG:4326 (aka WGS84) vs. CRS84.
+Both of these systems are for mapping coordinates measured in latitude and
+longitude degrees, but they have their axes in different orders! Specifically,
+CRS84 defines positions as always (longitude, latitude) order, while ESPG:4326
+defines positions in (latitude, longitude) order.
+
+The axis ordering makes a difference for how you define extents with
+`osdatahub`. When using EPSG:4326 and latitude/longitude order, the extent
+should also be defined in that order, where the x-axis is your first coordinate
+axis and the y-axis is your second coordinate axis.
+
+
+```r
+# using latitude, longitude ordering for EPSG:4326
+extent <- extent_from_bbox(c(50.928731, -1.503346, 50.942376, -1.46762), "epsg:4326") 
+
+# using longitude, latitude ordering for CRS84
+extent <- extent_from_bbox(c(-1.503346, 50.928731, -1.46762, 50.942376), "crs84") 
+```
+

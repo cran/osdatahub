@@ -24,12 +24,12 @@ that hosts both free and premium data products.
 
 ## Features
 
--   Get access to Ordnance Survey data in as few as 2-3 lines of code
--   Easily query geographic extents using bounding boxes, radii, British
-    National Grid references, and ONS geographies
--   Request as much data as you need with automatic API paging
--   Supports the OS National Geographic Database (NGD) - Features
-    Places, Maps and Downloads APIs
+- Get access to Ordnance Survey data in as few as 2-3 lines of code
+- Easily query geographic extents using bounding boxes, radii, British
+  National Grid references, and geometries
+- Request as much data as you need with automatic API paging
+- Supports the OS National Geographic Database (NGD) - Features, Places,
+  Maps, Names and Downloads APIs
 
 **Note**: This package is under active development.
 
@@ -51,8 +51,8 @@ library(osdatahub)
 
 You’ll also need to sign-up for an account on the [OS Data
 Hub](https://osdatahub.os.uk/) and get an API key to access certain
-features. If you’ve setup you’re account and need help getting a key,
-try the following steps:
+features. If you’ve setup your account and need help getting a key, try
+the following steps:
 
 1.  Navigate to the **API Dashboard** located on the top navigation bar
 2.  Go to **My Projects**
@@ -236,9 +236,37 @@ results <- places_query(extent, limit = 50, key = key)
 
 Note: the Places API requires a *premium* API key.
 
+## Names API
+
+The OS Data Hub also contains the [OS Names
+API](https://osdatahub.os.uk/docs/names/technicalSpecification), which
+is a geographic directory containing basic information about
+identifiable places. The API allows us to identify places by their
+address/place name and can find the nearest named location to a given
+point.
+
+The Names API is very similar to the Places API as it needs a (premium)
+API key. We can then query the object with a place name to get more
+information.
+
+``` r
+library(osdatahub)
+key <- '[YOUR KEY GOES HERE]'
+
+# Find locations by fuzzy name search.
+results <- names_query('Buckingham Palace', limit = 5)
+```
+
+Note: the Places API requires a *premium* API key.
+
+# More information
+
+For more detailed usage examples, please check the vignettes.
+
 ------------------------------------------------------------------------
 
 # Contribute
 
 This package is still under active development and we welcome
-contributions from the community. Please contact us via Email.
+contributions from the community. Please raise an issue in Github or
+contact us via Email.

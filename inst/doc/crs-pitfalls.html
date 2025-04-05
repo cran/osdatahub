@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Common CRS Pitfalls</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Common CRS Pitfalls</h1>
+
+
+
+<p>When working with <code>osdatahub</code> you will notice that some of
+the functions using extents have an argument called <code>crs</code>.
+For example when creating a bounding box you need to specify a CRS like
+this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>extent <span class="ot">&lt;-</span> <span class="fu">extent_from_bbox</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="at">crs =</span> <span class="st">&quot;epsg:4326&quot;</span>)</span></code></pre></div>
+<p>The second argument in <code>extent_from_bbox</code> is called CRS,
+which stands for “coordinate reference system”. A CRS is needed when
+processing geographic data in order to manipulate the coordinates.
+Typically you won’t need to know much about the CRS when using
+<code>osdatahub</code>, but there are some common “gotchas” which we
+will describe here.</p>
+<p>A CRS may sometimes be referred to as a SRS (spatial reference
+system) but they are the same thing.</p>
+<p>In <code>osdatahub</code> the CRS is specified as a string in the
+following format “epsg:27700”. EPSG stands for European Petroleum Survey
+Group and 27700 represents the CRS which Ordnance Survey commonly uses.
+CRS values used in <code>osdatahub</code> are: EPSG:27700, EPSG:4326,
+EPSG:7405, EPSG:3857, and CRS84.</p>
+<p>A full description of CRS is not needed to use <code>osdatahub</code>
+but if you are interested in that kind of thing this link is useful for
+grounding your understanding <a href="https://datacarpentry.org/organization-geospatial/03-crs/">https://datacarpentry.org/organization-geospatial/03-crs/</a>.</p>
+<div id="specifing-the-wrong-bounding-box" class="section level2">
+<h2>Specifing the wrong bounding box</h2>
+<p>The most likely pitfall, due to CRS, you may encounter relates to
+specifying your extent when creating it for <code>osdatahub.</code></p>
+<p>For example, this is a bounding box is for a portion of
+Westminster</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>extent <span class="ot">&lt;-</span> <span class="fu">extent_from_bbox</span>(<span class="fu">c</span>(<span class="dv">530034</span>, <span class="dv">180154</span>, <span class="dv">530699</span>, <span class="dv">180381</span>), <span class="st">&quot;epsg:27700&quot;</span>)</span></code></pre></div>
+<p>But a very common mistake is to specify the coordinates in a
+different CRS to the CRS passed to the function. Suppose we made the
+following error.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># incorrect CRS argument</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>extent <span class="ot">&lt;-</span> <span class="fu">extent_from_bbox</span>(<span class="fu">c</span>(<span class="dv">530034</span>, <span class="dv">180154</span>, <span class="dv">530699</span>, <span class="dv">180381</span>), <span class="st">&quot;epsg:4326&quot;</span>) </span></code></pre></div>
+<p>Here we have given the coordinates in the CRS 27700 (eastings and
+northings measured in metres); however we’ve mistakenly specified the
+CRS as 4326. The same coordinates in different CRS can represent
+different locations. For this example, the bounding box is actually
+somewhere in the arctic circle, and consequently any query for OS data
+in this region would return an error.</p>
+<div id="sanity-checks" class="section level3">
+<h3>Sanity checks</h3>
+<p>A good way to check if you are using the correct CRS for your
+coordinates is to ensure the coordinates fall within a sensible
+range.</p>
+<ul>
+<li>“EPSG:27700” - This CRS is called British Nation Grid (BNG) it is
+used by Ordnance Survey to map the British Isles. In this system x
+coordinates are in the range -90619.29 to 612435.55 and y is in the
+range 10097.13 to 1234954.16</li>
+<li>“EPSG:4326” - called World Geodetic System 1984 (WGS84) is often
+used by GPS and has the following ranges of values -90.0 to 90.0 and
+-180 to 180.0. This CRS implies the coordinates are specified in
+(Latitude, Longitude) order</li>
+<li>“CRS:84” - is equivalent to EPSG:4326, but the coordinates are
+specified in (Longitude, Latitude) order</li>
+<li>“EPSG:3857” - Pseudo-Mercator is used by mapping companies like
+Google and Open Street Map with values between -85.6 to 85.6 and -180 to
+180.0</li>
+</ul>
+<p>This means its pretty easy to see if you are using BNG when you
+should be WGS84 or Pseudo-Mercator. Differentiating between WGS84,
+CRS84, and Pseudo-Mercator can’t be done with this check and will
+require you to check which CRS you want.</p>
+</div>
+</div>
+<div id="epsg4326-and-crs84" class="section level2">
+<h2>EPSG:4326 and CRS:84</h2>
+<p>Another common source of confusion with CRS is EPSG:4326 (aka WGS84)
+vs. CRS84. Both of these systems are for mapping coordinates measured in
+latitude and longitude degrees, but they have their axes in different
+orders! Specifically, CRS84 defines positions as always (longitude,
+latitude) order, while ESPG:4326 defines positions in (latitude,
+longitude) order.</p>
+<p>The axis ordering makes a difference for how you define extents with
+<code>osdatahub</code>. When using EPSG:4326 and latitude/longitude
+order, the extent should also be defined in that order, where the x-axis
+is your first coordinate axis and the y-axis is your second coordinate
+axis.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># using latitude, longitude ordering for EPSG:4326</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>extent <span class="ot">&lt;-</span> <span class="fu">extent_from_bbox</span>(<span class="fu">c</span>(<span class="fl">50.928731</span>, <span class="sc">-</span><span class="fl">1.503346</span>, <span class="fl">50.942376</span>, <span class="sc">-</span><span class="fl">1.46762</span>), <span class="st">&quot;epsg:4326&quot;</span>) </span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># using longitude, latitude ordering for CRS84</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>extent <span class="ot">&lt;-</span> <span class="fu">extent_from_bbox</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.503346</span>, <span class="fl">50.928731</span>, <span class="sc">-</span><span class="fl">1.46762</span>, <span class="fl">50.942376</span>), <span class="st">&quot;crs84&quot;</span>) </span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

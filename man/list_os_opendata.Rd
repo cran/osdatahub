@@ -7,8 +7,8 @@
 list_os_opendata(product_id, file_name, file_format, file_subformat, area, ...)
 }
 \arguments{
-\item{product_id}{(character) Retrieve information on a specific data product.
-Optional.}
+\item{product_id}{(character) Retrieve information on a specific data
+product. Optional.}
 
 \item{file_name}{(character) Filter downloads to only include those with this
 file name. Optional.}

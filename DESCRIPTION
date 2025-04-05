@@ -1,6 +1,6 @@
 Package: osdatahub
 Title: Easier Interaction with the Ordnance Survey Data Hub
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Chris", "Jochem", email = "chris.jochem@os.uk", role = c("cre", "aut")),
     person("Ordnance Survey Ltd", role = c("cph", "fnd")))
@@ -11,16 +11,16 @@ Description: Ordnance Survey ('OS') is the national mapping agency for Great
     provides a user-friendly way to access, query, and download these data.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.1
 Suggests: httptest, knitr, rmarkdown, sf, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: R (>= 2.10)
 Imports: geojsonsf, geos, httr, jsonlite
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-10-25 11:14:50 UTC; wjochem
+Packaged: 2025-04-04 17:10:43 UTC; wjochem
 Author: Chris Jochem [cre, aut],
   Ordnance Survey Ltd [cph, fnd]
 Maintainer: Chris Jochem <chris.jochem@os.uk>
 Repository: CRAN
-Date/Publication: 2023-10-25 18:00:02 UTC
+Date/Publication: 2025-04-05 11:20:06 UTC

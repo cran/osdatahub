@@ -2,7 +2,7 @@
 title: "Plotting API Results: sf, tmap, and maptiles"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{plotting-results}
+  %\VignetteIndexEntry{Plotting API Results}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -38,10 +38,12 @@ Somerset from the 'wtr-fts-water-1' collection via the NGD Features API and then
 makes a simple plot to show what was returned.
 
 
+
 ```r
 library(osdatahub)
 library(sf)
 ```
+
 
 
 ```r
@@ -73,7 +75,8 @@ as a `data.frame` object. Specify the `returnType` argument as 'sf' in
 
 ```r
 results_df <- st_read(results, crs = st_crs(crs), quiet = TRUE)
-#> Warning: st_crs<- : replacing crs does not reproject data; use st_transform for that
+#> Warning: st_crs<- : replacing crs does not reproject data; use st_transform for
+#> that
 ```
 We can ignore the warning about setting the CRS in this case because we
 specified the API should return the features in EPSG:27700.
@@ -82,6 +85,7 @@ Now it is as simple as calling `plot()` on the data frame, including some
 optional styling parameters, to visualize the results. The in-built plotting
 commands of `sf` are detailed in this
 [vignette](https://r-spatial.github.io/sf/articles/sf5.html).
+
 
 
 ```r
@@ -98,10 +102,10 @@ plot(st_geometry(results_df),
      col = 'purple',
      add = TRUE)
 
-mtext('Contains OS data © Crown copyright and database rights, 2023.', side = 1, line = 4)
+mtext('Contains OS data © Crown copyright and database rights, 2025.', side = 1, line = 4)
 ```
 
-<img src="fig-basic-plot-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotngd-1.png" style="display: block; margin: auto;" />
 
 This plot shows us the features returned form the API and plots them correctly
 in geogrpahic space. Once we've checked the results look sensible, it would be
@@ -122,6 +126,7 @@ This first example demonstrates how to create a plot similar to the basic `sf`
 plot using `tmap`.
 
 
+
 ```r
 library(maptiles)
 library(tmap)
@@ -134,24 +139,25 @@ query_plot <- tm_shape(results_df) +
   tm_borders(lty = 'dashed') +
   tm_grid(labels.format = list(big.mark = ""),
                 lines = FALSE) +
-  tm_credits('Contains OS data © Crown copyright and database rights, 2023.',
+  tm_credits('Contains OS data © Crown copyright and database rights, 2025.',
              position = c("LEFT", "BOTTOM"))
 
 query_plot
 ```
 
-<img src="fig-basic-tmap-plot-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotngdtm1-1.png" style="display: block; margin: auto;" />
 
 To add a basemap we will retrieve the OS Maps tiles using a custom source in
 `maptiles`.
 
 
+
 ```r
 # Define the tile server parameters
 osmaps <- list(src = 'OS Maps',
-               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key=XXXXXX',
+               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key={apikey}',
                sub = '',
-               cit = 'Contains OS data © Crown copyright and database rights, 2023.')
+               cit = 'Contains OS data © Crown copyright and database rights, 2025.')
 
 # Download tiles and compose basemap raster
 tile_maps <- get_tiles(x = extent$polygon,
@@ -170,7 +176,7 @@ final_plot <- tm_shape(tile_maps,
 final_plot
 ```
 
-<img src="fig-tmap-with-basemap-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotngdtm2-1.png" style="display: block; margin: auto;" />
 
 Note that `maptiles` currently only supports tiles in EPSG:3857 projection. The
 package attempts to re-project the basemap to match the CRS of the query
@@ -180,12 +186,19 @@ download the tiles in either ESPG:27700 or EPSG:3857. However, it requires more
 advanced processing and some additional packages, such as `terra`.
 
 
+
 ```r
 # Download tiles
 res <- query_maps(extent_from_bbox(st_bbox(results_df),
                                    crs = 27700),
                   layer = 'Light_27700',
                   output_dir = tempdir())
+#> Light_27700_6_161_345.png already exists. Set `overwrite` to TRUE.
+#> Light_27700_6_162_345.png already exists. Set `overwrite` to TRUE.
+#> Light_27700_6_163_345.png already exists. Set `overwrite` to TRUE.
+#> Light_27700_6_161_344.png already exists. Set `overwrite` to TRUE.
+#> Light_27700_6_162_344.png already exists. Set `overwrite` to TRUE.
+#> Light_27700_6_163_344.png already exists. Set `overwrite` to TRUE.
 
 # Convert tiles into georeferenced rasters
 png2rast <- function(path, bbox, crs){
@@ -212,5 +225,5 @@ base_plot <- tm_shape(basemap,
 base_plot
 ```
 
-<img src="fig-tmap-with-basemap-2-1.png" style="display: block; margin: auto;" />
+<img src="fig-plottiles-1.png" style="display: block; margin: auto;" />
 

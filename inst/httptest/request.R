@@ -21,4 +21,10 @@ function (request) {
                                     "https://api.os.uk/search/places/v1/",
                                     "Places/",
                                     fixed = TRUE)
+
+  # Names mocks
+  request <- httptest::gsub_request(request,
+                                    "https://api.os.uk/search/names/v1/",
+                                    "Names/",
+                                    fixed = TRUE)
 }

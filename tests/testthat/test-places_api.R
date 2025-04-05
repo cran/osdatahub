@@ -5,7 +5,7 @@ test_that("we can catch Places errors", {
   expect_error(query_places(NULL))
   expect_error(query_places('Text query', output_crs = 'invalid-crs'))
   expect_error(query_places('Text query', limit = 0))
-  expect_error(query_places('Text query', limit = 101))
+  # expect_error(query_places('Text query', limit = 101))
 
   expect_error(query_nearest_places(point=c(1,2,3)))
   expect_error(query_nearest_places(point=c(0,0), point_crs = 'invalid-crs'))

@@ -21,7 +21,6 @@ don't require you to already have a polygon:
 * `extent_from_bbox()`
 * `extent_from_radius()`
 * `extent_from_bng()`
-* `extent_from_ons_code()`
 
 ## Extent from Polygon
 
@@ -35,10 +34,12 @@ shows how you can construct an extent to query the NGD Features API for all the
 buildings within a rectangle.
 
 
+
 ```r
 library(osdatahub)
 library(geos)
 ```
+
 
 
 ```r
@@ -65,6 +66,7 @@ object in an item named `polygon`, so we can plot it on a map to check it covers
 the area we wanted.
 
 
+
 ```r
 library(sf)
 library(tmap)
@@ -75,9 +77,9 @@ polygon <- polygon_extent$polygon
 
 # define the tile server parameters
 osmaps <- list(src = 'OS Maps',
-               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key=XXXXXX',
+               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key={apikey}',
                sub = '',
-               cit = 'Contains OS data © Crown copyright and database rights, 2023.')
+               cit = 'Contains OS data © Crown copyright and database rights, 2025.')
 
 # download tiles and compose basemap raster
 poly_maps <- get_tiles(x = polygon,
@@ -99,7 +101,8 @@ plt <- tm_shape(poly_maps, bbox = polygon) +
 plt
 ```
 
-<img src="fig-extent-from-poly-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotpolytm-1.png" style="display: block; margin: auto;" />
+
 
 
 ```r
@@ -115,6 +118,7 @@ results <- query_ngd(polygon_extent,
 ```
 
 
+
 ```r
 # Plot the results on the existing map
 plt <- plt +
@@ -124,7 +128,8 @@ plt <- plt +
 plt
 ```
 
-<img src="fig-extent-with-buildings-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotqry-1.png" style="display: block; margin: auto;" />
+
 
 ## Extent from Bounding Box
 
@@ -137,6 +142,7 @@ previous example, just in fewer lines of code.
 You might use this if you want to return data that covers an area currently
 visible in a web map, or if you want to match the bounds of another data source,
 such as a raster, geodataframe or shapefile.
+
 
 
 ```r
@@ -166,6 +172,7 @@ This example shows how you can query for all road nodes within 200m of a point
 location.
 
 
+
 ```r
 point <- c(441317, 112165)
 distance <- 200
@@ -182,12 +189,12 @@ results <- query_ngd(radial_extent,
 
 print(paste0('There are ', nrow(results), ' roadway nodes within ',
              distance, 'm of (', point[1], ', ', point[2], ').'))
-#> [1] "There are 107 roadway nodes within 200m of (441317, 112165)."
+#> [1] "There are 105 roadway nodes within 200m of (441317, 112165)."
 ```
 
 
-```r
 
+```r
 # download tiles and compose basemap raster
 poly_maps <- get_tiles(x = radial_extent$polygon,
                        provider = osmaps,
@@ -210,7 +217,7 @@ plt <- tm_shape(poly_maps, bbox = radial_extent$polygon) +
 plt
 ```
 
-<img src="fig-extent-from-radius-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotqrytm-1.png" style="display: block; margin: auto;" />
 
 ## Extent from National Grid Code
 
@@ -227,6 +234,7 @@ The BNG square can be represented as a polygon geometry where the length of the
 side equal to the scale of the grid reference.
 
 
+
 ```r
 # Identify a BNG square
 bngcode <- 'SU3715'
@@ -241,6 +249,7 @@ print(bng_extent)
 ```
 
 
+
 ```r
 # Query the API
 results <- query_ngd(bng_extent,
@@ -249,6 +258,7 @@ results <- query_ngd(bng_extent,
                      max_results = 10000,
                      returnType = 'sf')
 ```
+
 
 
 ```r
@@ -274,79 +284,5 @@ plt <- tm_shape(poly_maps, bbox = bng_extent$polygon) +
 plt
 ```
 
-<img src="fig-extent-from-bng-1.png" style="display: block; margin: auto;" />
+<img src="fig-plotbngqry-1.png" style="display: block; margin: auto;" />
 
-## Extent from ONS Code
-
-The Office for National Statistics maintains a source of official geographies
-for the UK, such as county boundaries, electoral wards, parishes, and census
-output areas. These boundaries are commonly used for data analysis, particularly
-of socio-economic factors. You can automatically define a query extent by using
-the ONS code for the particular area you are interested in, making it easy to
-combine geospatial information with other data sources, such as census records.
-A full list of available codes can be found
-[here](https://statistics.data.gov.uk:443/atlas/resource?uri=http://statistics.data.gov.uk/id/statistical-geography/K02000001).
-This example shows how you can find all the buildings in a particular electoral ward.
-
-
-```r
-# This is the ONS code for the Woolston electoral ward in Southampton.
-ward <- 'E05002470'
-electoral_extent <- extent_from_ons_code(ward)
-
-# The CRS cannot be set when requesting an ONS geography.
-print(electoral_extent)
-#> OS Data Hub Query Extent
-#> Created from: ONS
-#> Bounding box: -1.3843 50.88 -1.3494 50.8992
-#> Coord. Ref. Sys.: crs84
-```
-
-
-```r
-# Query the API
-results <- query_ngd(electoral_extent,
-                     collection = 'bld-fts-buildingpart-1',
-                     crs = 'EPSG:27700',
-                     max_results = 10000,
-                     returnType = 'sf')
-#> Error:
-```
-
-Next we can plot the results, however, the basemap has a CRS of EPSG:3857 and
-the data has a CRS of EPSG:4326, so we need to convert the data so that it
-aligns correctly with the basemap first. We could choose to convert the basemap
-to match the data instead, but it results in a warped looking plot.
-
-
-```r
-results <- st_transform(results, crs = 3857)
-extent_poly <- st_transform(electoral_extent$polygon, crs = 3857)
-```
-
-
-
-```r
-# download tiles and compose basemap raster
-poly_maps <- get_tiles(x = extent_poly,
-                       provider = osmaps,
-                       crop = FALSE,
-                       cachedir = tempdir(),
-                       apikey = get_os_key(),
-                       verbose = FALSE)
-
-# Plot the results
-plt <- tm_shape(poly_maps, bbox = extent_poly) +
-        tm_rgb() +
-        tm_shape(extent_poly) +
-        tm_borders(lty = 'dashed', lwd = 2) +
-        tm_shape(results) +
-        tm_fill(col = 'darkblue') +
-        tm_grid(labels.format = list(big.mark = ""),
-                lines = FALSE) +
-        tm_credits(osmaps$cit)
-
-plt
-```
-
-<img src="fig-extent-from-ons-1.png" style="display: block; margin: auto;" />

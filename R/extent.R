@@ -3,8 +3,9 @@
 #'
 #' Provide extents from various types of input features and geometries to be
 #' used as filters in OS Data Hub API queries.
-#' @param bbox A bounding box, passed as a numeric vector in (xmin, ymin, xmax,
-#'   ymax) or a \code{data.frame} object with numeric columns.
+#' @param bbox A bounding box, passed as a numeric vector in
+#'   (xmin,ymin,xmax,ymax) format, or a \code{data.frame} object with numeric
+#'   columns.
 #' @param polygon A polygon specified in a WKT string, an object of class
 #'   \code{geos}, or an object of class \code{sf}.
 #' @param geojson A character string defining a polygon in GeoJSON format.
@@ -29,6 +30,10 @@
 #'   either 'epsg:27700' or 'epsg:3857' which implies the units of the distance
 #'   for the radius are meters.
 #'
+#'   Using \code{crs}='epsg:4326' implies that coordinates will be in
+#'   Latitude/Longitude order. The equivalent projection with Longitude/Latitude
+#'   order is 'crs84'.
+#'
 #'   The \code{qExtent} return option identifies a simple class of objects
 #'   containing a polygon of the extent in WKT format, the bounding box
 #'   coordinates, and a CRS string. It is intended to be used internally by
@@ -40,11 +45,15 @@
 #' @examples
 #' extent_from_bbox(c(600000, 310200, 600900, 310900), "epsg:27700", returnType = 'wkt')
 #'
+#' # When using EPSG:4326, note the coordinate order expects latitude, longitude
+#' extent_from_bbox(c(50.928731, -1.503346, 50.942376, -1.46762), crs="epsg:4326")
+#'
 #' extent_from_radius(c(441317, 112165), radius = 200)
 #'
 #' extent_from_bng("SU3715")
 #'
 #' @import geos
+#' @importFrom stats setNames
 #' @name extent
 #' @export
 extent_from_bbox <- function(bbox,
@@ -99,9 +108,6 @@ extent_from_bbox <- function(bbox,
         bbox <- as.numeric(bbox[1L, 1:4])
       }
     }
-
-    # Process geometry. xmin, ymin, xmax, ymax
-    geom <- geos::geos_create_rectangle(bbox[1], bbox[2], bbox[3], bbox[4])
   }
 
   if(!valid_crs(crs)){
@@ -109,6 +115,15 @@ extent_from_bbox <- function(bbox,
   } else{
     crs <- get_crs(crs, returnType = 'code')
   }
+
+  # # Process geometry.
+  # # EPSG:4326 is Lat/Lon, but BBox is still minx,miny,maxx,maxy
+  # if(get_crs(crs, 'number') == 4326){
+  #   bbox <- c(bbox[2], bbox[1], bbox[4], bbox[3])
+  # }
+
+  bbox <- setNames(bbox, c('xmin','ymin','xmax','ymax'))
+  geom <- do.call(geos::geos_create_rectangle, as.list(bbox))
 
   # Create a polygon.
   # Check `sf` package is available.
@@ -118,20 +133,16 @@ extent_from_bbox <- function(bbox,
     nCRS <- get_crs(crs, 'number')
     if(nCRS == 84) nCRS <- 'CRS:84'  # Convert to a format understood by `sf`.
 
-    geometry <- sf::st_sf(geometry = sf::st_as_sfc(geom),
-                          crs = sf::st_crs(nCRS))
+    geometry <- sf::st_sf(geometry = sf::st_as_sfc(sf::st_bbox(bbox,
+                                                               crs=sf::st_crs(nCRS))))
   }
 
   returnType <- match.arg(returnType)
 
-  # Extent of the polygon.
-  geom <- geos::geos_envelope(geom)
-  attr(geom, 'crs') <- crs
-
   # Process returns.
   if(returnType == 'qExtent'){
     return(make_extent(wkt = geos::geos_write_wkt(geom),
-                       bbox = geos::geos_extent(geom),
+                       bbox = data.frame(as.list(bbox)),
                        polygon = geometry,
                        src = 'BBox',
                        crs = crs))
@@ -439,7 +450,7 @@ extent_from_radius <- function(centre,
   returnType <- match.arg(returnType)
 
   # Define circle as a buffer around the centre point.
-  bparams <- geos::geos_buffer_params(quad_segs = 16,
+  bparams <- geos::geos_buffer_params(quad_segs = 8,
                                       end_cap_style = "round",
                                       join_style = "round",
                                       mitre_limit = 5.0,
@@ -528,86 +539,6 @@ extent_from_bng <- function(grid_ref,
                        bbox = geos::geos_extent(geom),
                        polygon = geometry,
                        src = 'BNG',
-                       crs = crs))
-  }
-
-  if(returnType == 'geos'){
-    return(geom)
-  }
-
-  if(returnType == 'wkt'){
-    return(geos::geos_write_wkt(geom))
-  }
-}
-
-
-#' Retrieve an extent for ONS geographies
-#'
-#' @param ons_code (character) A single ONS code representing a statistical
-#'   area.
-#' @param returnType (character) Define the object returned. The default is
-#'   \code{'qExtent'} to define a "query extent" object expected internally by
-#'   \code{osdatahub}. Other options are \code{'wkt'} to return the geometry in
-#'   Well-Known Text format or \code{'geos'} to return an object of class
-#'   \code{geos}.
-#' @details The Office for National Statistics (ONS) maintains a source of
-#'   official geographies for the UK, such as county boundaries, electoral
-#'   wards, parishes, and census output areas. These boundaries are commonly
-#'   used for data analysis, particularly of socio-economic factors. A full list
-#'   of available ONS geographies can be found here:
-#'   \url{https://statistics.data.gov.uk:443/atlas/resource?uri=http://statistics.data.gov.uk/id/statistical-geography/K02000001}.
-#'
-#'   When returning a \code{geos} object, the coordinate reference system
-#'   attribute will be set to CRS:84 by default and not to a full CRS
-#'   definition.
-#'
-#'   The \code{qExtent} return option identifies a simple class of objects
-#'   containing a polygon of the extent in WKT format, the bounding box
-#'   coordinates, and a CRS string. It is intended to be used internally by
-#'   functions in \code{osdatahub}.
-#'
-#' @returns The coordinates of the polygon boundary.
-#'
-#' @seealso [extent]
-#'
-#' @examples
-#' \donttest{
-#' ext <- extent_from_ons_code("E05002470", returnType = 'wkt')
-#' }
-#'
-#' @import geos
-#' @export
-extent_from_ons_code <- function(ons_code,
-                                 returnType = c('qExtent', 'geos', 'wkt')){
-
-  returnType <- match.arg(returnType)
-
-  # Query the ONS API.
-  geom <- get_ons_geom(ons_code, 'geos')
-  crs = attr(geom, 'crs')
-
-  # Create a polygon.
-  # Check `sf` package is available.
-  if (!requireNamespace('sf', quietly = TRUE)){
-    geometry <- NULL
-  } else{
-    nCRS <- get_crs(crs, 'number')
-    if(nCRS == 84) nCRS <- 'CRS:84'  # Convert to a format understood by `sf`.
-
-    attr(geom, 'crs') <- NULL
-    geometry <- sf::st_sf(geometry = sf::st_as_sfc(geom),
-                          crs = sf::st_crs(nCRS))
-  }
-
-  # Extent of the polygon
-  # geom <- geos::geos_envelope(geom)
-
-  # Process returns.
-  if(returnType == 'qExtent'){
-    return(make_extent(wkt = geos::geos_write_wkt(geom),
-                       bbox = geos::geos_extent(geom),
-                       polygon = geometry,
-                       src = 'ONS',
                        crs = crs))
   }
 

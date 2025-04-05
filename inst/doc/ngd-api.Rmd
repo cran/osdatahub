@@ -2,7 +2,7 @@
 title: "Using the NGD Features API with R"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{ngd-api}
+  %\VignetteIndexEntry{Using the NGD Features API}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,7 +11,7 @@ vignette: >
 
 The National Geographic Database (NGD) Features API provides access to Ordnance
 Survey's next generation NGD data. The NGD Features API is a premium or public
-sector product only. The [NGD Features API](https://www.ordnancesurvey.co.uk/business-government/products/os-ngd-api-features)
+sector product only. The [NGD Features API](https://docs.os.uk/osngd/accessing-os-ngd/access-the-os-ngd-api/os-ngd-api-features)
 allows for programmatic access to NGD data in `GeoJSON` format. For `R`
 developers, `osdatahub` library wraps the functionality of the NGD Features API
 to make it easy to get data from Ordnance Survey.
@@ -25,6 +25,7 @@ and [JavaScript](https://github.com/OrdnanceSurvey/osdatahub-js) versions of
 ### Importing the `osdatahub` package
 
 Once the package is installed within `R`, import the library.
+
 
 
 ```r
@@ -46,6 +47,7 @@ variable. While you can store  your API key as a string variable in your
 scripts, you want to protect your API key and not share it with others.
 
 
+
 ```r
 # Option 1.
 # Create an environment variable with your API key.
@@ -55,6 +57,7 @@ set_os_key('YOUR API KEY HERE')
 
 Alternatively, you can add the environment variable manually in a file called
 `.Renviron`, typically in your home directory.
+
 
 
 ```r
@@ -80,6 +83,7 @@ by any other program on your computer. More secure options see the [`keyring` pa
 To access the NGD API functions from `osdatahub`, write the following:
 
 
+
 ```r
 library(osdatahub)
 ```
@@ -100,12 +104,14 @@ To quickly retrieve a data frame of available data, you can query the API
 directly:
 
 
+
 ```r
 ngd_collections <- list_ngd_collections(simple = FALSE)
 ```
 
 This will returna a data.frame object, which we can then iterate through to
 return metadata about each collection.
+
 
 
 ```r
@@ -115,26 +121,46 @@ for(i in 1:nrow(ngd_collections)){
   print(paste0(collection$title, '(', collection$id, ')'))
 }
 #> [1] "Building v1(bld-fts-building-1)"
+#> [1] "Building v2(bld-fts-building-2)"
+#> [1] "Building v3(bld-fts-building-3)"
+#> [1] "Building v4(bld-fts-building-4)"
+#> [1] "Building Access Location v1(bld-fts-buildingaccesslocation-1)"
 #> [1] "Building Line v1(bld-fts-buildingline-1)"
 #> [1] "Building Part v1(bld-fts-buildingpart-1)"
+#> [1] "Building Part v2(bld-fts-buildingpart-2)"
+#> [1] "Crowd Sourced Name Point v1(gnm-fts-crowdsourcednamepoint-1)"
 #> [1] "Named Area v1(gnm-fts-namedarea-1)"
 #> [1] "Named Point v1(gnm-fts-namedpoint-1)"
+#> [1] "Named Road Junction v1(gnm-fts-namedroadjunction-1)"
 #> [1] "Land v1(lnd-fts-land-1)"
+#> [1] "Land v2(lnd-fts-land-2)"
+#> [1] "Land v3(lnd-fts-land-3)"
 #> [1] "Landform v1(lnd-fts-landform-1)"
 #> [1] "Landform Line v1(lnd-fts-landformline-1)"
 #> [1] "Landform Point v1(lnd-fts-landformpoint-1)"
 #> [1] "Land Point v1(lnd-fts-landpoint-1)"
 #> [1] "Site v1(lus-fts-site-1)"
+#> [1] "Site v2(lus-fts-site-2)"
 #> [1] "Site Access Location v1(lus-fts-siteaccesslocation-1)"
+#> [1] "Site Access Location v2(lus-fts-siteaccesslocation-2)"
 #> [1] "Site Routing Point v1(lus-fts-siteroutingpoint-1)"
 #> [1] "Compound Structure v1(str-fts-compoundstructure-1)"
+#> [1] "Compound Structure v2(str-fts-compoundstructure-2)"
+#> [1] "Field Boundary v1(str-fts-fieldboundary-1)"
 #> [1] "Structure v1(str-fts-structure-1)"
+#> [1] "Structure v2(str-fts-structure-2)"
+#> [1] "Structure v3(str-fts-structure-3)"
 #> [1] "Structure Line v1(str-fts-structureline-1)"
 #> [1] "Structure Point v1(str-fts-structurepoint-1)"
 #> [1] "Cartographic Rail Detail v1(trn-fts-cartographicraildetail-1)"
 #> [1] "Rail v1(trn-fts-rail-1)"
+#> [1] "Rail v2(trn-fts-rail-2)"
+#> [1] "Rail v3(trn-fts-rail-3)"
 #> [1] "Road Line v1(trn-fts-roadline-1)"
 #> [1] "Road Track Or Path v1(trn-fts-roadtrackorpath-1)"
+#> [1] "Road Track Or Path v2(trn-fts-roadtrackorpath-2)"
+#> [1] "Road Track Or Path v3(trn-fts-roadtrackorpath-3)"
+#> [1] "Street Light v1(trn-fts-streetlight-1)"
 #> [1] "Connecting Link v1(trn-ntwk-connectinglink-1)"
 #> [1] "Connecting Node v1(trn-ntwk-connectingnode-1)"
 #> [1] "Ferry Link v1(trn-ntwk-ferrylink-1)"
@@ -142,6 +168,7 @@ for(i in 1:nrow(ngd_collections)){
 #> [1] "Ferry Terminal v1(trn-ntwk-ferryterminal-1)"
 #> [1] "Path v1(trn-ntwk-path-1)"
 #> [1] "Path Link v1(trn-ntwk-pathlink-1)"
+#> [1] "Path Link v2(trn-ntwk-pathlink-2)"
 #> [1] "Path Node v1(trn-ntwk-pathnode-1)"
 #> [1] "Pavement Link v1(trn-ntwk-pavementlink-1)"
 #> [1] "Railway Link v1(trn-ntwk-railwaylink-1)"
@@ -151,8 +178,11 @@ for(i in 1:nrow(ngd_collections)){
 #> [1] "Road Junction v1(trn-ntwk-roadjunction-1)"
 #> [1] "Road Link v1(trn-ntwk-roadlink-1)"
 #> [1] "Road Link v2(trn-ntwk-roadlink-2)"
+#> [1] "Road Link v3(trn-ntwk-roadlink-3)"
+#> [1] "Road Link v4(trn-ntwk-roadlink-4)"
 #> [1] "Road Node v1(trn-ntwk-roadnode-1)"
 #> [1] "Street v1(trn-ntwk-street-1)"
+#> [1] "Tram On Road v1(trn-ntwk-tramonroad-1)"
 #> [1] "Average And Indicative Speed v1(trn-rami-averageandindicativespeed-1)"
 #> [1] "Highway Dedication v1(trn-rami-highwaydedication-1)"
 #> [1] "Maintenance Area v1(trn-rami-maintenancearea-1)"
@@ -170,6 +200,8 @@ for(i in 1:nrow(ngd_collections)){
 #> [1] "Inter Tidal Line v1(wtr-fts-intertidalline-1)"
 #> [1] "Tidal Boundary v1(wtr-fts-tidalboundary-1)"
 #> [1] "Water v1(wtr-fts-water-1)"
+#> [1] "Water v2(wtr-fts-water-2)"
+#> [1] "Water v3(wtr-fts-water-3)"
 #> [1] "Water Point v1(wtr-fts-waterpoint-1)"
 #> [1] "Water Link v1(wtr-ntwk-waterlink-1)"
 #> [1] "Water Link Set v1(wtr-ntwk-waterlinkset-1)"
@@ -188,12 +220,16 @@ To get the first 100 features in the collection, you simply need to query use
 the NGD query function:
 
 
+
 ```r
 collection <- 'bld-fts-buildingpart-1'
 
 # make the query and contact the API
 # reduce the number of features returned for the example
 features <- query_ngd(collection = collection, max_results = 4)
+
+features
+#> {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osid":"000000b1-0556-4231-a52a-9b5b8b82dfbf","toid":"osgb1000041024621","theme":"Buildings","changetype":"Modified Attributes","isobscured":false,"description":"Building","versiondate":"2025-02-20","geometry_area":59.20065,"height_source":"Ordnance Survey","physicallevel":"Surface Level","oslandusetiera":"Residential Accommodation","oslandusetierb":"[\"Private Residence\"]","geometry_source":"Ordnance Survey","oslandcovertiera":"Constructed","oslandcovertierb":"[\"Building\"]","oslanduse_source":"Ordnance Survey","height_updatedate":"2025-01-17","description_source":"Ordnance Survey","oslandcover_source":"Ordnance Survey","associatedstructure":null,"geometry_updatedate":"2006-08-30","height_evidencedate":"2022-06-20","capturespecification":"Urban","oslanduse_updatedate":"2006-08-30","absoluteheightmaximum":115.2,"absoluteheightminimum":105.0,"geometry_evidencedate":"2006-08-30","heightconfidencelevel":"Moderate","relativeheightmaximum":10.2,"absoluteheightroofbase":111.2,"description_updatedate":"2006-08-30","oslandcover_updatedate":"2006-08-30","oslanduse_evidencedate":"2006-08-30","relativeheightroofbase":6.2,"versionavailabletodate":null,"firstdigitalcapturedate":"1991-09-18","description_evidencedate":"2006-08-30","oslandcover_evidencedate":"2006-08-30","versionavailablefromdate":"2025-02-21T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[-3.9703075,55.7425473],[-3.9701862,55.7424916],[-3.9701342,55.7425277],[-3.9702899,55.7425992],[-3.9703201,55.7425783],[-3.9702857,55.7425625],[-3.9703075,55.7425473]]]}},{"type":"Feature","properties":{"osid":"00000183-3ae0-4f05-adb8-a5792d09f55f","toid":"osgb5000005167584940","theme":"Buildings","changetype":"Modified Attributes","isobscured":false,"description":"Building","versiondate":"2025-02-15","geometry_area":9.499142,"height_source":"Ordnance Survey","physicallevel":"Surface Level","oslandusetiera":"Residential Accommodation","oslandusetierb":"[\"Private Residence\"]","geometry_source":"Ordnance Survey","oslandcovertiera":"Constructed","oslandcovertierb":"[\"Building\"]","oslanduse_source":"Ordnance Survey","height_updatedate":"2025-01-17","description_source":"Ordnance Survey","oslandcover_source":"Ordnance Survey","associatedstructure":null,"geometry_updatedate":"2015-10-29","height_evidencedate":"2024-11-18","capturespecification":"Rural","oslanduse_updatedate":"2015-10-29","absoluteheightmaximum":null,"absoluteheightminimum":5.4,"geometry_evidencedate":"2015-03-11","heightconfidencelevel":"Incomplete","relativeheightmaximum":null,"absoluteheightroofbase":null,"description_updatedate":"2015-10-29","oslandcover_updatedate":"2015-10-29","oslanduse_evidencedate":"2015-03-11","relativeheightroofbase":null,"versionavailabletodate":null,"firstdigitalcapturedate":"2015-11-12","description_evidencedate":"2015-03-11","oslandcover_evidencedate":"2015-03-11","versionavailablefromdate":"2025-02-16T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[1.7275593,52.6614194],[1.7275547,52.6614375],[1.7274869,52.6614311],[1.7274915,52.661413],[1.7275593,52.6614194]]]}},{"type":"Feature","properties":{"osid":"000001d6-8217-4f7a-a70e-3757eb76c9e4","toid":"osgb1000000360448","theme":"Buildings","changetype":"Modified Attributes","isobscured":false,"description":"Building","versiondate":"2025-02-10","geometry_area":15.25875,"height_source":"Ordnance Survey","physicallevel":"Surface Level","oslandusetiera":"Residential Accommodation","oslandusetierb":"[\"Private Residence\"]","geometry_source":"Ordnance Survey","oslandcovertiera":"Constructed","oslandcovertierb":"[\"Building\"]","oslanduse_source":"Ordnance Survey","height_updatedate":"2025-01-17","description_source":"Ordnance Survey","oslandcover_source":"Ordnance Survey","associatedstructure":null,"geometry_updatedate":"1993-04-01","height_evidencedate":"2022-07-10","capturespecification":"Urban","oslanduse_updatedate":"1993-04-01","absoluteheightmaximum":38.6,"absoluteheightminimum":34.7,"geometry_evidencedate":"1993-04-01","heightconfidencelevel":"Moderate","relativeheightmaximum":3.9,"absoluteheightroofbase":37.3,"description_updatedate":"1993-04-01","oslandcover_updatedate":"1993-04-01","oslanduse_evidencedate":"1993-04-01","relativeheightroofbase":2.6,"versionavailabletodate":null,"firstdigitalcapturedate":"1993-04-01","description_evidencedate":"1993-04-01","oslandcover_evidencedate":"1993-04-01","versionavailablefromdate":"2025-02-11T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[0.1941514,51.5924144],[0.194112,51.5924057],[0.194138,51.5923612],[0.1941775,51.5923703],[0.1941514,51.5924144]]]}},{"type":"Feature","properties":{"osid":"00000208-a659-49f9-a587-ab26cb2b2248","toid":"osgb1000017249389","theme":"Buildings","changetype":"Modified Attributes","isobscured":false,"description":"Building","versiondate":"2025-02-13","geometry_area":12.80625,"height_source":"Ordnance Survey","physicallevel":"Surface Level","oslandusetiera":"Unknown Or Unused Artificial","oslandusetierb":"[]","geometry_source":"Ordnance Survey","oslandcovertiera":"Constructed","oslandcovertierb":"[\"Building\"]","oslanduse_source":"Ordnance Survey","height_updatedate":"2025-01-17","description_source":"Ordnance Survey","oslandcover_source":"Ordnance Survey","associatedstructure":null,"geometry_updatedate":"1993-05-01","height_evidencedate":"2024-08-21","capturespecification":"Urban","oslanduse_updatedate":"1993-05-01","absoluteheightmaximum":null,"absoluteheightminimum":70.0,"geometry_evidencedate":"1993-05-01","heightconfidencelevel":"Incomplete","relativeheightmaximum":null,"absoluteheightroofbase":null,"description_updatedate":"1993-05-01","oslandcover_updatedate":"1993-05-01","oslanduse_evidencedate":"1993-05-01","relativeheightroofbase":null,"versionavailabletodate":null,"firstdigitalcapturedate":"1993-05-01","description_evidencedate":"1993-05-01","oslandcover_evidencedate":"1993-05-01","versionavailablefromdate":"2025-02-14T00:00:00Z"},"geometry":{"type":"Polygon","coordinates":[[[-1.454721,52.3961029],[-1.4547862,52.3961253],[-1.454804,52.3961051],[-1.4547382,52.3960832],[-1.454721,52.3961029]]]}}]}
 ```
 
 The API returns an OGC-compliant GeoJSON, which is easy to import into other
@@ -204,12 +240,14 @@ libraries for analysis.
 If you haven't already, install and import the `sf` library:
 
 
+
 ```r
 library(sf)
 #> Linking to GEOS 3.9.1, GDAL 3.3.2, PROJ 7.2.1; sf_use_s2() is TRUE
 ```
 
 And now, import the NGD data.
+
 
 
 ```r
@@ -220,6 +258,7 @@ Let's take a look at a preview of the data using `head()`. As you'll see, NGD
 data is rich in attribution:
 
 
+
 ```r
 head(gdf)
 #> Simple feature collection with 4 features and 39 fields
@@ -227,40 +266,76 @@ head(gdf)
 #> Dimension:     XY
 #> Bounding box:  xmin: -3.97032 ymin: 51.59236 xmax: 1.727559 ymax: 55.7426
 #> Geodetic CRS:  WGS 84
-#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
-#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings Modified Attributes      FALSE    Building  2022-09-18     59.200650 Ordnance Survey
-#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings                 New      FALSE    Building  2022-08-26      9.499142 Ordnance Survey
-#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings                 New      FALSE    Building  2022-08-26     15.258750 Ordnance Survey
-#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings                 New      FALSE    Building  2022-08-26     12.806250 Ordnance Survey
-#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
-#> 1 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 2 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 3 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 4 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
-#> 1    Ordnance Survey    Ordnance Survey                <NA>          2006-08-30          2022-06-20                Urban           2006-08-30
-#> 2    Ordnance Survey    Ordnance Survey                <NA>          2015-10-29          2022-04-16                Rural           2015-10-29
-#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-04-01          2022-07-10                Urban           1993-04-01
-#> 4    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2022-02-27                Urban           1993-05-01
-#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
-#> 1                115.16                105.00            2006-08-30          Not Assessed                 10.16                 110.85             2006-08-30
-#> 2                  7.29                  5.39            2015-03-11          Not Assessed                  1.90                   6.21             2015-10-29
-#> 3                 38.63                 34.70            1993-04-01          Not Assessed                  3.93                  37.13             1993-04-01
-#> 4                 72.80                 69.99            1993-05-01          Not Assessed                  2.81                  71.95             1993-05-01
-#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
-#> 1             2006-08-30             2006-08-30                   5.85                   <NA>              1991-09-18               2006-08-30
-#> 2             2015-10-29             2015-03-11                   0.82                   <NA>              2015-11-12               2015-03-11
-#> 3             1993-04-01             1993-04-01                   2.43                   <NA>              1993-04-01               1993-04-01
-#> 4             1993-05-01             1993-05-01                   1.96                   <NA>              1993-05-01               1993-05-01
-#>   oslandcover_evidencedate versionavailablefromdate                       geometry
-#> 1               2006-08-30      2022-09-19 01:00:00 POLYGON ((-3.970308 55.7425...
-#> 2               2015-03-11      2022-08-27 01:00:00 POLYGON ((1.727559 52.66142...
-#> 3               1993-04-01      2022-08-27 01:00:00 POLYGON ((0.1941514 51.5924...
-#> 4               1993-05-01      2022-08-27 01:00:00 POLYGON ((-1.454721 52.3961...
+#>                                   osid                 toid     theme
+#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings
+#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings
+#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings
+#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings
+#>            changetype isobscured description versiondate geometry_area
+#> 1 Modified Attributes      FALSE    Building  2025-02-20     59.200650
+#> 2 Modified Attributes      FALSE    Building  2025-02-15      9.499142
+#> 3 Modified Attributes      FALSE    Building  2025-02-10     15.258750
+#> 4 Modified Attributes      FALSE    Building  2025-02-13     12.806250
+#>     height_source physicallevel               oslandusetiera
+#> 1 Ordnance Survey Surface Level    Residential Accommodation
+#> 2 Ordnance Survey Surface Level    Residential Accommodation
+#> 3 Ordnance Survey Surface Level    Residential Accommodation
+#> 4 Ordnance Survey Surface Level Unknown Or Unused Artificial
+#>          oslandusetierb geometry_source oslandcovertiera oslandcovertierb
+#> 1 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 2 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 3 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 4                    [] Ordnance Survey      Constructed     ["Building"]
+#>   oslanduse_source height_updatedate description_source oslandcover_source
+#> 1  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 2  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 3  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 4  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#>   associatedstructure geometry_updatedate height_evidencedate
+#> 1                <NA>          2006-08-30          2022-06-20
+#> 2                <NA>          2015-10-29          2024-11-18
+#> 3                <NA>          1993-04-01          2022-07-10
+#> 4                <NA>          1993-05-01          2024-08-21
+#>   capturespecification oslanduse_updatedate absoluteheightmaximum
+#> 1                Urban           2006-08-30                 115.2
+#> 2                Rural           2015-10-29                    NA
+#> 3                Urban           1993-04-01                  38.6
+#> 4                Urban           1993-05-01                    NA
+#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel
+#> 1                 105.0            2006-08-30              Moderate
+#> 2                   5.4            2015-03-11            Incomplete
+#> 3                  34.7            1993-04-01              Moderate
+#> 4                  70.0            1993-05-01            Incomplete
+#>   relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                  10.2                  111.2             2006-08-30
+#> 2                    NA                     NA             2015-10-29
+#> 3                   3.9                   37.3             1993-04-01
+#> 4                    NA                     NA             1993-05-01
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase
+#> 1             2006-08-30             2006-08-30                    6.2
+#> 2             2015-10-29             2015-03-11                     NA
+#> 3             1993-04-01             1993-04-01                    2.6
+#> 4             1993-05-01             1993-05-01                     NA
+#>   versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1                   <NA>              1991-09-18               2006-08-30
+#> 2                   <NA>              2015-11-12               2015-03-11
+#> 3                   <NA>              1993-04-01               1993-04-01
+#> 4                   <NA>              1993-05-01               1993-05-01
+#>   oslandcover_evidencedate versionavailablefromdate
+#> 1               2006-08-30               2025-02-21
+#> 2               2015-03-11               2025-02-16
+#> 3               1993-04-01               2025-02-11
+#> 4               1993-05-01               2025-02-14
+#>                         geometry
+#> 1 POLYGON ((-3.970308 55.7425...
+#> 2 POLYGON ((1.727559 52.66142...
+#> 3 POLYGON ((0.1941514 51.5924...
+#> 4 POLYGON ((-1.454721 52.3961...
 ```
 
 Alternatively, it's possible to return an `sf` object directly from the NGD
 query function:
+
 
 
 ```r
@@ -275,36 +350,71 @@ head(features)
 #> Dimension:     XY
 #> Bounding box:  xmin: -3.97032 ymin: 51.59236 xmax: 1.727559 ymax: 55.7426
 #> Geodetic CRS:  WGS 84
-#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
-#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings Modified Attributes      FALSE    Building  2022-09-18     59.200650 Ordnance Survey
-#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings                 New      FALSE    Building  2022-08-26      9.499142 Ordnance Survey
-#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings                 New      FALSE    Building  2022-08-26     15.258750 Ordnance Survey
-#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings                 New      FALSE    Building  2022-08-26     12.806250 Ordnance Survey
-#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
-#> 1 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 2 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 3 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 4 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
-#> 1    Ordnance Survey    Ordnance Survey                <NA>          2006-08-30          2022-06-20                Urban           2006-08-30
-#> 2    Ordnance Survey    Ordnance Survey                <NA>          2015-10-29          2022-04-16                Rural           2015-10-29
-#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-04-01          2022-07-10                Urban           1993-04-01
-#> 4    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2022-02-27                Urban           1993-05-01
-#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
-#> 1                115.16                105.00            2006-08-30          Not Assessed                 10.16                 110.85             2006-08-30
-#> 2                  7.29                  5.39            2015-03-11          Not Assessed                  1.90                   6.21             2015-10-29
-#> 3                 38.63                 34.70            1993-04-01          Not Assessed                  3.93                  37.13             1993-04-01
-#> 4                 72.80                 69.99            1993-05-01          Not Assessed                  2.81                  71.95             1993-05-01
-#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
-#> 1             2006-08-30             2006-08-30                   5.85                   <NA>              1991-09-18               2006-08-30
-#> 2             2015-10-29             2015-03-11                   0.82                   <NA>              2015-11-12               2015-03-11
-#> 3             1993-04-01             1993-04-01                   2.43                   <NA>              1993-04-01               1993-04-01
-#> 4             1993-05-01             1993-05-01                   1.96                   <NA>              1993-05-01               1993-05-01
-#>   oslandcover_evidencedate versionavailablefromdate                       geometry
-#> 1               2006-08-30     2022-09-19T00:00:00Z POLYGON ((-3.970308 55.7425...
-#> 2               2015-03-11     2022-08-27T00:00:00Z POLYGON ((1.727559 52.66142...
-#> 3               1993-04-01     2022-08-27T00:00:00Z POLYGON ((0.1941514 51.5924...
-#> 4               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-1.454721 52.3961...
+#>                                   osid                 toid     theme
+#> 1 000000b1-0556-4231-a52a-9b5b8b82dfbf    osgb1000041024621 Buildings
+#> 2 00000183-3ae0-4f05-adb8-a5792d09f55f osgb5000005167584940 Buildings
+#> 3 000001d6-8217-4f7a-a70e-3757eb76c9e4    osgb1000000360448 Buildings
+#> 4 00000208-a659-49f9-a587-ab26cb2b2248    osgb1000017249389 Buildings
+#>            changetype isobscured description versiondate geometry_area
+#> 1 Modified Attributes      FALSE    Building  2025-02-20     59.200650
+#> 2 Modified Attributes      FALSE    Building  2025-02-15      9.499142
+#> 3 Modified Attributes      FALSE    Building  2025-02-10     15.258750
+#> 4 Modified Attributes      FALSE    Building  2025-02-13     12.806250
+#>     height_source physicallevel               oslandusetiera
+#> 1 Ordnance Survey Surface Level    Residential Accommodation
+#> 2 Ordnance Survey Surface Level    Residential Accommodation
+#> 3 Ordnance Survey Surface Level    Residential Accommodation
+#> 4 Ordnance Survey Surface Level Unknown Or Unused Artificial
+#>          oslandusetierb geometry_source oslandcovertiera oslandcovertierb
+#> 1 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 2 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 3 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#> 4                    [] Ordnance Survey      Constructed     ["Building"]
+#>   oslanduse_source height_updatedate description_source oslandcover_source
+#> 1  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 2  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 3  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 4  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#>   associatedstructure geometry_updatedate height_evidencedate
+#> 1                <NA>          2006-08-30          2022-06-20
+#> 2                <NA>          2015-10-29          2024-11-18
+#> 3                <NA>          1993-04-01          2022-07-10
+#> 4                <NA>          1993-05-01          2024-08-21
+#>   capturespecification oslanduse_updatedate absoluteheightmaximum
+#> 1                Urban           2006-08-30                 115.2
+#> 2                Rural           2015-10-29                    NA
+#> 3                Urban           1993-04-01                  38.6
+#> 4                Urban           1993-05-01                    NA
+#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel
+#> 1                 105.0            2006-08-30              Moderate
+#> 2                   5.4            2015-03-11            Incomplete
+#> 3                  34.7            1993-04-01              Moderate
+#> 4                  70.0            1993-05-01            Incomplete
+#>   relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                  10.2                  111.2             2006-08-30
+#> 2                    NA                     NA             2015-10-29
+#> 3                   3.9                   37.3             1993-04-01
+#> 4                    NA                     NA             1993-05-01
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase
+#> 1             2006-08-30             2006-08-30                    6.2
+#> 2             2015-10-29             2015-03-11                     NA
+#> 3             1993-04-01             1993-04-01                    2.6
+#> 4             1993-05-01             1993-05-01                     NA
+#>   versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1                   <NA>              1991-09-18               2006-08-30
+#> 2                   <NA>              2015-11-12               2015-03-11
+#> 3                   <NA>              1993-04-01               1993-04-01
+#> 4                   <NA>              1993-05-01               1993-05-01
+#>   oslandcover_evidencedate versionavailablefromdate
+#> 1               2006-08-30     2025-02-21T00:00:00Z
+#> 2               2015-03-11     2025-02-16T00:00:00Z
+#> 3               1993-04-01     2025-02-11T00:00:00Z
+#> 4               1993-05-01     2025-02-14T00:00:00Z
+#>                         geometry
+#> 1 POLYGON ((-3.970308 55.7425...
+#> 2 POLYGON ((1.727559 52.66142...
+#> 3 POLYGON ((0.1941514 51.5924...
+#> 4 POLYGON ((-1.454721 52.3961...
 ```
 
 ## 4. Adding Filters
@@ -353,6 +463,7 @@ in Manchester. We can specify an extent based on the geometry, and then pass
 this into the query:
 
 
+
 ```r
 extent = extent_from_bbox(c(-2.244973, 53.476620, -2.237799, 53.480525),
                           crs = 'CRS84')
@@ -368,38 +479,73 @@ features
 #> Simple feature collection with 4 features and 39 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
-#> Bounding box:  xmin: -2.241707 ymin: 53.47689 xmax: -2.23773 ymax: 53.48008
+#> Bounding box:  xmin: -2.242056 ymin: 53.47747 xmax: -2.239881 ymax: 53.48008
 #> Geodetic CRS:  WGS 84
-#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
-#> 1 02837688-4553-4d32-87aa-10733dad9274    osgb1000024157902 Buildings                 New      FALSE    Building  2022-08-26      21.57975 Ordnance Survey
-#> 2 02c6f2c7-0e25-4224-b4a7-c62c7d476e48    osgb1000024157913 Buildings Modified Attributes      FALSE    Building  2023-06-03     441.13125 Ordnance Survey
-#> 3 0364fa8b-024a-4078-ae13-4a3e21c5e744    osgb1000024155721 Buildings                 New      FALSE    Building  2022-08-26     173.96250 Ordnance Survey
-#> 4 04b6b1d7-2a73-4173-b953-20c3ef2e6ce7 osgb5000005290155401 Buildings Modified Attributes      FALSE    Building  2022-09-26      45.44059            <NA>
-#>   physicallevel               oslandusetiera        oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate
-#> 1 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 2 Surface Level  Commercial Activity: Retail                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 3 Surface Level Unknown Or Unused Artificial                    [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24
-#> 4 Surface Level    Residential Accommodation ["Private Residence"] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey              <NA>
-#>   description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
-#> 1    Ordnance Survey    Ordnance Survey                <NA>          2016-10-26          2021-04-19                Urban           1993-05-01
-#> 2    Ordnance Survey    Ordnance Survey                <NA>          2010-04-13          2021-04-19                Urban           2010-04-13
-#> 3    Ordnance Survey    Ordnance Survey                <NA>          1993-05-01          2021-04-19                Urban           1993-05-01
-#> 4    Ordnance Survey    Ordnance Survey                <NA>          2021-11-30                <NA>                Urban           2021-11-30
-#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
-#> 1                 68.98                 43.34            2016-10-04          Not Assessed                 25.64                  66.54             1993-05-01
-#> 2                 67.69                 44.22            2010-04-13          Not Assessed                 23.47                  60.87             2010-04-13
-#> 3                 57.17                 42.16            1993-05-01          Not Assessed                 15.01                  52.83             1993-05-01
-#> 4                    NA                    NA            2021-11-30                  <NA>                    NA                     NA             2021-11-30
-#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
-#> 1             1993-05-01             1993-05-01                  23.20                   <NA>              1993-05-01               1993-05-01
-#> 2             2010-04-13             2010-04-13                  16.65                   <NA>              1993-05-01               2010-04-13
-#> 3             1993-05-01             1993-05-01                  10.67                   <NA>              1993-05-01               1993-05-01
-#> 4             2021-11-30             2021-11-30                     NA                   <NA>              2021-11-30               2021-11-30
-#>   oslandcover_evidencedate versionavailablefromdate                       geometry
-#> 1               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-2.240982 53.4790...
-#> 2               2010-04-13     2023-06-04T00:00:00Z POLYGON ((-2.241351 53.4798...
-#> 3               1993-05-01     2022-08-27T00:00:00Z POLYGON ((-2.240074 53.4781...
-#> 4               2021-11-30     2022-09-27T00:00:00Z POLYGON ((-2.23773 53.47692...
+#>                                   osid              toid     theme
+#> 1 02837688-4553-4d32-87aa-10733dad9274 osgb1000024157902 Buildings
+#> 2 02c6f2c7-0e25-4224-b4a7-c62c7d476e48 osgb1000024157913 Buildings
+#> 3 0364fa8b-024a-4078-ae13-4a3e21c5e744 osgb1000024155721 Buildings
+#> 4 050aaf7a-2fd2-43f8-a8cf-7594b3b85059 osgb1000024155885 Buildings
+#>            changetype isobscured description versiondate geometry_area
+#> 1 Modified Attributes      FALSE    Building  2025-02-17      21.57975
+#> 2 Modified Attributes      FALSE    Building  2025-02-17     441.13125
+#> 3 Modified Attributes      FALSE    Building  2025-02-17     173.96250
+#> 4 Modified Attributes      FALSE    Building  2023-06-03       2.99890
+#>     height_source physicallevel               oslandusetiera
+#> 1 Ordnance Survey Surface Level Unknown Or Unused Artificial
+#> 2 Ordnance Survey Surface Level  Commercial Activity: Retail
+#> 3 Ordnance Survey Surface Level Unknown Or Unused Artificial
+#> 4            <NA> Surface Level    Residential Accommodation
+#>          oslandusetierb geometry_source oslandcovertiera oslandcovertierb
+#> 1                    [] Ordnance Survey      Constructed     ["Building"]
+#> 2                    [] Ordnance Survey      Constructed     ["Building"]
+#> 3                    [] Ordnance Survey      Constructed     ["Building"]
+#> 4 ["Private Residence"] Ordnance Survey      Constructed     ["Building"]
+#>   oslanduse_source height_updatedate description_source oslandcover_source
+#> 1  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 2  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 3  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 4  Ordnance Survey              <NA>    Ordnance Survey    Ordnance Survey
+#>   associatedstructure geometry_updatedate height_evidencedate
+#> 1                <NA>          2016-10-26          2023-06-09
+#> 2                <NA>          2010-04-13          2023-06-09
+#> 3                <NA>          1993-05-01          2023-06-09
+#> 4                <NA>          1998-12-09                <NA>
+#>   capturespecification oslanduse_updatedate absoluteheightmaximum
+#> 1                Urban           1993-05-01                  68.8
+#> 2                Urban           2010-04-13                  68.1
+#> 3                Urban           1993-05-01                  57.5
+#> 4                Urban           1998-12-09                    NA
+#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel
+#> 1                  43.4            2016-10-04              Moderate
+#> 2                  44.2            2010-04-13              Moderate
+#> 3                  42.2            1993-05-01              Moderate
+#> 4                    NA            1998-12-09                  <NA>
+#>   relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                  25.4                   66.8             1993-05-01
+#> 2                  23.9                   60.9             2010-04-13
+#> 3                  15.3                   52.9             1993-05-01
+#> 4                    NA                     NA             1998-12-09
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase
+#> 1             1993-05-01             1993-05-01                   23.4
+#> 2             2010-04-13             2010-04-13                   16.7
+#> 3             1993-05-01             1993-05-01                   10.7
+#> 4             1998-12-09             1998-12-09                     NA
+#>   versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1                   <NA>              1993-05-01               1993-05-01
+#> 2                   <NA>              1993-05-01               2010-04-13
+#> 3                   <NA>              1993-05-01               1993-05-01
+#> 4                   <NA>              1998-12-09               1998-12-09
+#>   oslandcover_evidencedate versionavailablefromdate
+#> 1               1993-05-01     2025-02-18T00:00:00Z
+#> 2               2010-04-13     2025-02-18T00:00:00Z
+#> 3               1993-05-01     2025-02-18T00:00:00Z
+#> 4               1998-12-09     2023-06-04T00:00:00Z
+#>                         geometry
+#> 1 POLYGON ((-2.240982 53.4790...
+#> 2 POLYGON ((-2.241351 53.4798...
+#> 3 POLYGON ((-2.240074 53.4781...
+#> 4 POLYGON ((-2.242056 53.4774...
 ```
 
 ### Custom Paging Parameters
@@ -408,6 +554,7 @@ By default, `osdatahub` will return a maximum 100 features to a query - starting
 at zero. This behaviour can be altered by specifying `max_results` and `offset`
 parameters. *We'll be building on the previous example, specifying the same
 extent as before...*
+
 
 
 ```r
@@ -428,38 +575,68 @@ features
 #> Simple feature collection with 4 features and 39 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
-#> Bounding box:  xmin: -2.2437 ymin: 53.47765 xmax: -2.238997 ymax: 53.47982
+#> Bounding box:  xmin: -2.2437 ymin: 53.47778 xmax: -2.238997 ymax: 53.48001
 #> Geodetic CRS:  WGS 84
-#>                                   osid                 toid     theme changetype isobscured description versiondate geometry_area   height_source physicallevel
-#> 1 4e1a5c52-aa3f-4c99-a216-f3ad0b5aff83    osgb1000024155766 Buildings        New      FALSE    Building  2022-08-26      64.48625 Ordnance Survey Surface Level
-#> 2 50b0ab14-2a1a-41ae-8425-6ddafbddb575    osgb1000024155767 Buildings        New      FALSE    Building  2022-08-26     457.61400 Ordnance Survey Surface Level
-#> 3 52335576-4e7b-47f8-ab79-a644172032f0    osgb1000024155700 Buildings        New      FALSE    Building  2022-08-26     166.62625 Ordnance Survey Surface Level
-#> 4 537d6ba9-5902-4e6b-b193-ad604a1570b9 osgb1000002517038005 Buildings        New      FALSE    Building  2022-08-26    1018.93900 Ordnance Survey Surface Level
-#>                 oslandusetiera oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source height_updatedate description_source
-#> 1  Commercial Activity: Retail             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
-#> 2  Commercial Activity: Retail             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
-#> 3 Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
-#> 4 Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey        2022-08-24    Ordnance Survey
-#>   oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate absoluteheightmaximum
-#> 1    Ordnance Survey                <NA>          1993-05-01          2021-04-19                Urban           1993-05-01                 63.80
-#> 2    Ordnance Survey                <NA>          2002-10-08          2021-04-19                Urban           2002-10-08                 69.45
-#> 3    Ordnance Survey                <NA>          2010-04-28          2021-04-19                Urban           2010-04-28                 63.78
-#> 4    Ordnance Survey                <NA>          2007-03-22          2021-04-19                Urban           2007-03-22                 70.57
-#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate oslandcover_updatedate
-#> 1                 41.84            1993-05-01          Not Assessed                 21.96                  62.62             1993-05-01             1993-05-01
-#> 2                 41.20            2002-10-08          Not Assessed                 28.25                  61.31             2002-10-08             2002-10-08
-#> 3                 42.59            2010-04-28          Not Assessed                 21.19                  61.16             2010-04-28             2010-04-28
-#> 4                 41.34            2007-03-22          Not Assessed                 29.23                  59.01             2007-03-22             2007-03-22
-#>   oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate oslandcover_evidencedate
-#> 1             1993-05-01                  20.78                   <NA>              1993-05-01               1993-05-01               1993-05-01
-#> 2             2002-10-08                  20.11                   <NA>              1993-05-01               2002-10-08               2002-10-08
-#> 3             2010-04-28                  18.57                   <NA>              1993-05-01               2010-04-28               2010-04-28
-#> 4             2007-03-22                  17.67                   <NA>              2007-03-22               2007-03-22               2007-03-22
+#>                                   osid                 toid     theme
+#> 1 52335576-4e7b-47f8-ab79-a644172032f0    osgb1000024155700 Buildings
+#> 2 537d6ba9-5902-4e6b-b193-ad604a1570b9 osgb1000002517038005 Buildings
+#> 3 57450ef6-1c0e-468b-8f41-29f3b91e9e1c    osgb1000024155761 Buildings
+#> 4 576e3927-9673-4fd2-87cc-e18b84da1f3b osgb5000005289320947 Buildings
+#>            changetype isobscured description versiondate geometry_area
+#> 1 Modified Attributes      FALSE    Building  2025-02-17     166.62625
+#> 2 Modified Attributes      FALSE    Building  2025-02-17    1018.93900
+#> 3 Modified Attributes      FALSE    Building  2025-02-17     105.23000
+#> 4 Modified Attributes      FALSE    Building  2025-02-17      13.84195
+#>     height_source physicallevel               oslandusetiera oslandusetierb
+#> 1 Ordnance Survey Surface Level Unknown Or Unused Artificial             []
+#> 2 Ordnance Survey Surface Level Unknown Or Unused Artificial             []
+#> 3 Ordnance Survey Surface Level Unknown Or Unused Artificial             []
+#> 4 Ordnance Survey Surface Level                    Mixed Use             []
+#>   geometry_source oslandcovertiera oslandcovertierb oslanduse_source
+#> 1 Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 2 Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 3 Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#> 4 Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
+#>   height_updatedate description_source oslandcover_source associatedstructure
+#> 1        2025-01-17    Ordnance Survey    Ordnance Survey                <NA>
+#> 2        2025-01-17    Ordnance Survey    Ordnance Survey                <NA>
+#> 3        2025-01-17    Ordnance Survey    Ordnance Survey                <NA>
+#> 4        2025-01-17    Ordnance Survey    Ordnance Survey                <NA>
+#>   geometry_updatedate height_evidencedate capturespecification
+#> 1          2010-04-28          2023-06-09                Urban
+#> 2          2007-03-22          2023-06-09                Urban
+#> 3          2010-04-26          2023-06-09                Urban
+#> 4          2021-11-15          2023-06-09                Urban
+#>   oslanduse_updatedate absoluteheightmaximum absoluteheightminimum
+#> 1           2010-04-28                  63.8                  42.6
+#> 2           2007-03-22                  70.5                  41.4
+#> 3           2010-04-26                  63.3                  41.3
+#> 4           2021-11-15                    NA                  45.1
+#>   geometry_evidencedate heightconfidencelevel relativeheightmaximum
+#> 1            2010-04-28              Moderate                  21.2
+#> 2            2007-03-22              Moderate                  29.1
+#> 3            2010-04-26              Moderate                  22.0
+#> 4            2021-04-19            Incomplete                    NA
+#>   absoluteheightroofbase description_updatedate oslandcover_updatedate
+#> 1                   61.3             2010-04-28             2010-04-28
+#> 2                   66.2             2007-03-22             2007-03-22
+#> 3                   60.7             2010-04-26             2010-04-26
+#> 4                     NA             2021-11-15             2021-11-15
+#>   oslanduse_evidencedate relativeheightroofbase versionavailabletodate
+#> 1             2010-04-28                   18.7                   <NA>
+#> 2             2007-03-22                   24.8                   <NA>
+#> 3             2010-04-26                   19.4                   <NA>
+#> 4             2021-04-19                     NA                   <NA>
+#>   firstdigitalcapturedate description_evidencedate oslandcover_evidencedate
+#> 1              1993-05-01               2010-04-28               2010-04-28
+#> 2              2007-03-22               2007-03-22               2007-03-22
+#> 3              1993-05-01               2010-04-26               2010-04-26
+#> 4              2021-11-15               2021-04-19               2021-04-19
 #>   versionavailablefromdate                       geometry
-#> 1     2022-08-27T00:00:00Z POLYGON ((-2.241327 53.4780...
-#> 2     2022-08-27T00:00:00Z POLYGON ((-2.24123 53.47778...
-#> 3     2022-08-27T00:00:00Z POLYGON ((-2.238997 53.4783...
-#> 4     2022-08-27T00:00:00Z POLYGON ((-2.243258 53.4794...
+#> 1     2025-02-18T00:00:00Z POLYGON ((-2.238997 53.4783...
+#> 2     2025-02-18T00:00:00Z POLYGON ((-2.243258 53.4794...
+#> 3     2025-02-18T00:00:00Z POLYGON ((-2.241665 53.4779...
+#> 4     2025-02-18T00:00:00Z POLYGON ((-2.239085 53.4799...
 ```
 
 ### Applying CQL Filters
@@ -469,6 +646,7 @@ results of your query to match specific needs. More information on CQL filters
 can be found
 [here](https://labs.os.uk/public/osngd/os-ngd-api-features/).
 We can pass a filter in the API using the `filter` parameter.
+
 
 
 ```r
@@ -484,59 +662,89 @@ features = query_ngd(extent,
 
 # run this cell to see the contents of 'features'
 features
-#> Simple feature collection with 7 features and 39 fields
+#> Simple feature collection with 5 features and 39 fields
 #> Geometry type: POLYGON
 #> Dimension:     XY
-#> Bounding box:  xmin: -2.243508 ymin: 53.47677 xmax: -2.237916 ymax: 53.48044
+#> Bounding box:  xmin: -2.243429 ymin: 53.47677 xmax: -2.237916 ymax: 53.48042
 #> Geodetic CRS:  WGS 84
-#>                                   osid                 toid     theme          changetype isobscured description versiondate geometry_area   height_source
-#> 1 40fa2462-4c01-48d4-bcf1-5179efb56027 osgb5000005134737612 Buildings                 New      FALSE    Building  2022-08-26     2122.6936 Ordnance Survey
-#> 2 41ab80d3-28ca-460f-9afe-04671aa2807a osgb1000002517080496 Buildings                 New      FALSE    Building  2022-08-26      687.8187 Ordnance Survey
-#> 3 8a98fdc7-bc44-4ac0-8c20-aac5c7ddcf30 osgb1000002517080494 Buildings                 New      FALSE    Building  2022-08-26      206.9899 Ordnance Survey
-#> 4 8ce5ac53-d4ee-492d-9b6d-56b069252cbe    osgb1000024155687 Buildings Modified Attributes      FALSE    Building  2023-06-22      748.7997 Ordnance Survey
-#> 5 a1007205-9f06-4a36-bcba-45de245d9faf osgb5000005134737702 Buildings                 New      FALSE    Building  2022-08-26      380.3845 Ordnance Survey
-#> 6 af43ce9a-18d2-47d2-9744-fdc89f7c241c osgb5000005267089134 Buildings                 New      FALSE    Building  2022-08-26     1590.4881 Ordnance Survey
-#> 7 cfe4934e-8360-40bb-81eb-5f49d240c2b8 osgb5000005275364197 Buildings Modified Attributes      FALSE    Building  2023-06-22     1143.7811 Ordnance Survey
-#>   physicallevel                                   oslandusetiera oslandusetierb geometry_source oslandcovertiera oslandcovertierb oslanduse_source
-#> 1 Surface Level Commercial Activity: Industrial Or Manufacturing             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 2 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 3 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 4 Surface Level                              Government Services             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 5 Surface Level                     Unknown Or Unused Artificial             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 6 Surface Level Commercial Activity: Industrial Or Manufacturing             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#> 7 Surface Level               Temporary Or Holiday Accommodation             [] Ordnance Survey      Constructed     ["Building"]  Ordnance Survey
-#>   height_updatedate description_source oslandcover_source associatedstructure geometry_updatedate height_evidencedate capturespecification oslanduse_updatedate
-#> 1        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2017-09-26          2021-04-19                Urban           2014-09-26
-#> 2        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2009-06-25          2021-04-19                Urban           2009-06-25
-#> 3        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2009-06-25          2021-04-19                Urban           2009-06-25
-#> 4        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2014-11-19          2021-04-19                Urban           2010-03-18
-#> 5        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2014-10-13          2021-04-19                Urban           2014-10-13
-#> 6        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2020-07-16          2021-04-19                Urban           2020-07-16
-#> 7        2022-08-24    Ordnance Survey    Ordnance Survey                <NA>          2021-01-13          2021-04-19                Urban           2021-01-13
-#>   absoluteheightmaximum absoluteheightminimum geometry_evidencedate heightconfidencelevel relativeheightmaximum absoluteheightroofbase description_updatedate
-#> 1                102.52                 38.65            2017-09-26          Not Assessed                 63.87                  94.76             2014-09-26
-#> 2                105.48                 43.20            2009-06-25          Not Assessed                 62.28                 100.70             2009-06-25
-#> 3                104.38                 43.17            2009-06-25          Not Assessed                 61.21                  88.38             2009-06-25
-#> 4                116.73                 43.13            2013-11-04          Not Assessed                 73.60                 109.57             2010-03-18
-#> 5                 99.96                 39.25            2014-10-13          Not Assessed                 60.71                  94.68             2014-10-13
-#> 6                102.53                 38.69            2020-07-16          Not Assessed                 63.84                  95.19             2020-07-16
-#> 7                112.00                 40.06            2021-01-13          Not Assessed                 71.94                 107.00             2021-01-13
-#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase versionavailabletodate firstdigitalcapturedate description_evidencedate
-#> 1             2014-09-26             2013-11-04                  56.11                   <NA>              2014-10-21               2013-11-04
-#> 2             2009-06-25             2009-06-25                  57.50                   <NA>              2009-06-25               2009-06-25
-#> 3             2009-06-25             2009-06-25                  45.21                   <NA>              2009-06-25               2009-06-25
-#> 4             2010-03-18             2010-03-18                  66.44                   <NA>              1993-05-01               2010-03-18
-#> 5             2014-10-13             2014-10-13                  55.43                   <NA>              2014-10-21               2014-10-13
-#> 6             2020-07-16             2020-07-16                  56.50                   <NA>              2020-07-16               2020-07-16
-#> 7             2021-01-13             2021-01-13                  66.94                   <NA>              2021-01-13               2021-01-13
-#>   oslandcover_evidencedate versionavailablefromdate                       geometry
-#> 1               2013-11-04     2022-08-27T00:00:00Z POLYGON ((-2.242897 53.4772...
-#> 2               2009-06-25     2022-08-27T00:00:00Z POLYGON ((-2.242983 53.4804...
-#> 3               2009-06-25     2022-08-27T00:00:00Z POLYGON ((-2.242827 53.4801...
-#> 4               2010-03-18     2023-06-23T00:00:00Z POLYGON ((-2.238278 53.4780...
-#> 5               2014-10-13     2022-08-27T00:00:00Z POLYGON ((-2.242894 53.4777...
-#> 6               2020-07-16     2022-08-27T00:00:00Z POLYGON ((-2.2422 53.47719,...
-#> 7               2021-01-13     2023-06-23T00:00:00Z POLYGON ((-2.241926 53.4779...
+#>                                   osid                 toid     theme
+#> 1 40fa2462-4c01-48d4-bcf1-5179efb56027 osgb5000005134737612 Buildings
+#> 2 41ab80d3-28ca-460f-9afe-04671aa2807a osgb1000002517080496 Buildings
+#> 3 8ce5ac53-d4ee-492d-9b6d-56b069252cbe    osgb1000024155687 Buildings
+#> 4 af43ce9a-18d2-47d2-9744-fdc89f7c241c osgb5000005267089134 Buildings
+#> 5 cfe4934e-8360-40bb-81eb-5f49d240c2b8 osgb5000005275364197 Buildings
+#>            changetype isobscured description versiondate geometry_area
+#> 1 Modified Attributes      FALSE    Building  2025-02-17     2122.6936
+#> 2 Modified Attributes      FALSE    Building  2025-02-17      687.8187
+#> 3 Modified Attributes      FALSE    Building  2025-02-17      748.8005
+#> 4 Modified Attributes      FALSE    Building  2025-02-17     1590.4881
+#> 5 Modified Attributes      FALSE    Building  2025-02-17     1143.7811
+#>     height_source physicallevel                                   oslandusetiera
+#> 1 Ordnance Survey Surface Level                                        Mixed Use
+#> 2 Ordnance Survey Surface Level Commercial Activity: Industrial Or Manufacturing
+#> 3 Ordnance Survey Surface Level                                        Mixed Use
+#> 4 Ordnance Survey Surface Level Commercial Activity: Industrial Or Manufacturing
+#> 5 Ordnance Survey Surface Level               Temporary Or Holiday Accommodation
+#>   oslandusetierb geometry_source oslandcovertiera oslandcovertierb
+#> 1             [] Ordnance Survey      Constructed     ["Building"]
+#> 2             [] Ordnance Survey      Constructed     ["Building"]
+#> 3             [] Ordnance Survey      Constructed     ["Building"]
+#> 4             [] Ordnance Survey      Constructed     ["Building"]
+#> 5             [] Ordnance Survey      Constructed     ["Building"]
+#>   oslanduse_source height_updatedate description_source oslandcover_source
+#> 1  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 2  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 3  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 4  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#> 5  Ordnance Survey        2025-01-17    Ordnance Survey    Ordnance Survey
+#>   associatedstructure geometry_updatedate height_evidencedate
+#> 1                <NA>          2017-09-26          2023-06-09
+#> 2                <NA>          2009-06-25          2023-06-09
+#> 3                <NA>          2024-06-25          2023-06-09
+#> 4                <NA>          2020-07-16          2023-06-09
+#> 5                <NA>          2021-01-13          2023-06-09
+#>   capturespecification oslanduse_updatedate absoluteheightmaximum
+#> 1                Urban           2014-09-26                 102.5
+#> 2                Urban           2009-06-25                 105.4
+#> 3                Urban           2010-03-18                 117.3
+#> 4                Urban           2020-07-16                 102.9
+#> 5                Urban           2021-01-13                 112.1
+#>   absoluteheightminimum geometry_evidencedate heightconfidencelevel
+#> 1                  38.7            2017-09-26              Moderate
+#> 2                  43.2            2009-06-25              Moderate
+#> 3                  43.1            2023-05-20              Moderate
+#> 4                  38.7            2020-07-16              Moderate
+#> 5                  40.2            2021-01-13              Moderate
+#>   relativeheightmaximum absoluteheightroofbase description_updatedate
+#> 1                  63.8                   95.9             2014-09-26
+#> 2                  62.2                   99.5             2009-06-25
+#> 3                  74.2                  104.3             2010-03-18
+#> 4                  64.2                   97.3             2020-07-16
+#> 5                  71.9                  107.6             2021-01-13
+#>   oslandcover_updatedate oslanduse_evidencedate relativeheightroofbase
+#> 1             2014-09-26             2013-11-04                   57.2
+#> 2             2009-06-25             2009-06-25                   56.3
+#> 3             2010-03-18             2010-03-18                   61.2
+#> 4             2020-07-16             2020-07-16                   58.6
+#> 5             2021-01-13             2021-01-13                   67.4
+#>   versionavailabletodate firstdigitalcapturedate description_evidencedate
+#> 1                   <NA>              2014-10-21               2013-11-04
+#> 2                   <NA>              2009-06-25               2009-06-25
+#> 3                   <NA>              1993-05-01               2010-03-18
+#> 4                   <NA>              2020-07-16               2020-07-16
+#> 5                   <NA>              2021-01-13               2021-01-13
+#>   oslandcover_evidencedate versionavailablefromdate
+#> 1               2013-11-04     2025-02-18T00:00:00Z
+#> 2               2009-06-25     2025-02-18T00:00:00Z
+#> 3               2010-03-18     2025-02-18T00:00:00Z
+#> 4               2020-07-16     2025-02-18T00:00:00Z
+#> 5               2021-01-13     2025-02-18T00:00:00Z
+#>                         geometry
+#> 1 POLYGON ((-2.242897 53.4772...
+#> 2 POLYGON ((-2.242983 53.4804...
+#> 3 POLYGON ((-2.238278 53.4780...
+#> 4 POLYGON ((-2.2422 53.47719,...
+#> 5 POLYGON ((-2.241926 53.4779...
 ```
 
 ## 5. Conclusion
@@ -544,4 +752,4 @@ features
 We hope this short introduction to the `osdatahub` package's new NGD
 capabilities has been useful! You can find further resources to assist you on
 your OS API development journal at:
-[https://github.com/OrdnanceSurvey/os-api-resources](https://github.com/OrdnanceSurvey/os-api-resources)
+[https://docs.os.uk/os-apis](https://docs.os.uk/os-apis)

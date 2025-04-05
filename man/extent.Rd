@@ -33,8 +33,9 @@ extent_from_radius(
 extent_from_bng(grid_ref, returnType = c("qExtent", "geos", "wkt"))
 }
 \arguments{
-\item{bbox}{A bounding box, passed as a numeric vector in (xmin, ymin, xmax,
-ymax) or a \code{data.frame} object with numeric columns.}
+\item{bbox}{A bounding box, passed as a numeric vector in
+(xmin,ymin,xmax,ymax) format, or a \code{data.frame} object with numeric
+columns.}
 
 \item{crs}{(character or numeric)  The identifier for coordinate reference
 system information for the feature, either in the format "epsg:xxxx" or an
@@ -75,6 +76,10 @@ When defining an extent by a radius around a point, the CRS must be
 either 'epsg:27700' or 'epsg:3857' which implies the units of the distance
 for the radius are meters.
 
+Using \code{crs}='epsg:4326' implies that coordinates will be in
+Latitude/Longitude order. The equivalent projection with Longitude/Latitude
+order is 'crs84'.
+
 The \code{qExtent} return option identifies a simple class of objects
 containing a polygon of the extent in WKT format, the bounding box
 coordinates, and a CRS string. It is intended to be used internally by
@@ -82,6 +87,9 @@ functions in \code{osdatahub}.
 }
 \examples{
 extent_from_bbox(c(600000, 310200, 600900, 310900), "epsg:27700", returnType = 'wkt')
+
+# When using EPSG:4326, note the coordinate order expects latitude, longitude
+extent_from_bbox(c(50.928731, -1.503346, 50.942376, -1.46762), crs="epsg:4326")
 
 extent_from_radius(c(441317, 112165), radius = 200)
 

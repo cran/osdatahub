@@ -82,7 +82,7 @@ query_ngd(x, ...)
 }
 \arguments{
 \item{x}{Object defining the query parameters, including feature IDs,
-extents, or spatial objects from which extents can be determined If
+extents, or spatial objects from which extents can be determined. If
 \code{x} is \code{NULL} or missing with other options specified by name,
 then the first \code{max_results} of the collection will be returned.}
 
@@ -172,19 +172,9 @@ results <- query_ngd(collection = 'bld-fts-buildingline-1', max_results = 50)
 results <- query_ngd('0000013e-5fed-447d-a627-dae6fb215138',
                      collection = 'bld-fts-buildingline-1')
 
-# Use an ONS geography to define a query extent.
-results <- query_ngd(extent_from_ons_code('E05002470'),
-                     collection = 'bld-fts-buildingpart-1')
-
-# Use an BNG reference to define a query extent.
+# Use a BNG reference to define a query extent.
 results <- query_ngd(extent_from_bng("SU3715"),
                      collection = 'bld-fts-buildingpart-1')
-
-# Use a spatial object to define a query extent.
-# Return the features converted to a spatial object.
-results <- query_ngd(sf::st_read('path/to/file.shp'),
-                     collection = 'bld-fts-buildingpart-1',
-                     returnType = 'sf')
 
 # Add a temporal filter to query.
 results <- query_ngd(collection = 'bld-fts-buildingline-1',

@@ -2,7 +2,7 @@
 title: "Interactive Plotting for API Results"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{interactive-plotting}
+  %\VignetteIndexEntry{Interactive Plotting for API Results}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,6 +25,7 @@ mapping library called Leaflet. The results of queries made using the
 interactive mapping libraries with JavaScript underpinnings, and the OS Maps API
 can supply tiles for basemaps giving that all important context to your data.
 
+
 ```{r setup}
 library(osdatahub)
 library(leaflet)
@@ -39,7 +40,8 @@ through popups.
 
 ### Get Data from the API
 
-```{r, tidy=FALSE}
+
+```{r defextent}
 # Choose data
 collection <- 'wtr-fts-water-1'
 
@@ -67,7 +69,8 @@ the location in view when the map first loads. Leaflet maps always use
 coordinates in the WGS84 coordinate reference system, so the starting location
 must be specified in degrees latitude and longitude.
 
-```{r, tidy=FALSE}
+
+```{r defmap}
 # m is the map object all other layers will be added to.
 m <- leaflet() %>%
   setView(lng = -1.325, lat = 50.98, zoom = 16)
@@ -80,7 +83,8 @@ adding the Maps API to the same project as the NGD Features API, you can use the
 same key for both. To find out more about API keys, check out the "Setting up an
 API key" example.
 
-```{r, tidy=FALSE}
+
+```{r defmap2}
 LAYER <- 'Outdoor_3857'
 ATTR <- paste0('Contains OS data © Crown copyright and database right ',
                format(Sys.Date(), "%Y"))
@@ -100,7 +104,8 @@ It's possible to add a simple overlay using `addGeoJSON()`; however, it's easier
 if the query results are parsed to create an `sf` object. This will give us more
 control to add a popup to each feature.
 
-```{r, tidy=FALSE}
+
+```{r defmap3}
 df <- st_read(surface_water, crs = st_crs('CRS:84'), quiet = TRUE)
 popup <- paste0('Area (m2):', round(df$geometry_area, 1))
 
@@ -112,7 +117,7 @@ m <- m %>%
 
 ### Add Bounding Box
 
-```{r, tidy=FALSE, eval=FALSE}
+```{r defmap4}
 bbox <- extent$polygon
 
 # Add the bounding box to the map.

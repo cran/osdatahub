@@ -5,7 +5,7 @@
 #' free text search.
 #' @param x Either a polygon created with \code{extent_from_*} functions
 #'   defining the geographic area, or a character string to search.
-#' @param output_crs Output CRS.
+#' @param output_crs Output CRS. Optional or will be defined by the extent.
 #' @param limit (numeric) The maximum number of features to return.
 #'   Default is 100 which is the max return per page from the Data Hub.
 #' @param classification_code Classification codes to filter query by.
@@ -87,8 +87,8 @@ query_places.qExtent <- function(x,
   # Validate parameters.
   params <- list()
 
-  if(limit < 1 | limit > 100){
-    stop('Limit must be between 1 and 100.', call. =)
+  if(limit < 1){
+    stop('Limit must be greater than 0.', call. = FALSE)
   }
 
   # qExtent objects should have a CRS.
@@ -146,7 +146,7 @@ query_places.qExtent <- function(x,
 
     # Update with new offset/limit.
     params[['offset']] <- offset
-    params[['maxresults']] <- n_required
+    params[['maxresults']] <- limit
 
     url <- httr::modify_url(url,
                             query = params)
@@ -246,8 +246,8 @@ query_places.character <- function(x,
   # Query text.
   params[['query']] <- x
 
-  if(limit < 1 | limit > 100){
-    stop('Limit must be between 1 and 100.', call. =)
+  if(limit < 1){
+    stop('Limit must be greater than 0.', call. = FALSE)
   }
 
   if(is.null(output_crs)){
@@ -255,7 +255,14 @@ query_places.character <- function(x,
   }
 
   stopifnot(valid_crs(output_crs))
-  params[['output_srs']] <- toupper(get_crs(output_crs, 'code'))
+  output_crs <- toupper(get_crs(output_crs, 'code'))
+
+  if(!output_crs %in% c('EPSG:27700', 'EPSG:4326', 'EPSG:3857')){
+    stop('Output CRS must be one of EPSG:27700, EPSG:4326 or EPSG:3857',
+         call. = FALSE)
+  }
+
+  params[['output_srs']] <- output_crs
 
   returnType <- match.arg(returnType)
 
@@ -297,13 +304,13 @@ query_places.character <- function(x,
 #' Takes a pair of coordinates (X, Y)/(Lon, Lat) as an input to determine the
 #' closest address.
 #' @param point A set of coordinates as a numeric vector, an object of class
-#'   \code{geos}, or an object of class \code{sf}
+#'   \code{geos}, or an object of class \code{sf}.
 #' @param point_crs (character or numeric) The identifier for coordinate
 #'   reference system information for the point feature.
-#' @param radius (numeric) The search radius in metres (max. 1000). Defaults is
+#' @param radius (numeric) The search radius in metres (max. 1000). Default is
 #'   100.
 #' @param output_crs (character or numeric) The output CRS. Defaults to
-#'   “EPSG:27700”.
+#'   “EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.
 #' @param classification_code Classification codes to filter query by.
 #' @param logical_status_code Logical status code to filter query by.
 #' @param dataset (character) The dataset to return. Multiple values can be
@@ -427,6 +434,11 @@ query_nearest_places <- function(point,
   point_crs <- get_crs(point_crs, 'code')
   output_crs <- get_crs(output_crs, 'code')
 
+  if(!toupper(output_crs) %in% c('EPSG:27700', 'EPSG:4326', 'EPSG:3857')){
+    stop('Output CRS must be one of EPSG:27700, EPSG:4326 or EPSG:3857',
+         call. = FALSE)
+  }
+
   # Check order of coordinates
   if(toupper(point_crs) == 'EPSG:4326'){
     point <- c(point[2], point[1])
@@ -461,7 +473,7 @@ query_nearest_places <- function(point,
 #' A query of addresses based on a property's postcode.
 #' @param postcode The postcode search parameter as a character.
 #' @param output_crs (character or numeric) The output CRS. Defaults to
-#'   “EPSG:27700”.
+#'   “EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.
 #' @param limit (numeric) The maximum number of features to return. Default is
 #'   100 which is the max return per page from the Data Hub.
 #' @param classification_code Classification codes to filter query by.
@@ -536,8 +548,8 @@ query_postcode_places <- function(postcode,
   # Query text.
   params[['postcode']] <- postcode
 
-  if(limit < 1 | limit > 100){
-    stop('Limit must be between 1 and 100.', call. = FALSE)
+  if(limit < 1){
+    stop('Limit must be greater than 0.', call. = FALSE)
   }
 
   if(is.null(output_crs)){
@@ -545,7 +557,14 @@ query_postcode_places <- function(postcode,
   }
 
   stopifnot(valid_crs(output_crs))
-  params[['output_srs']] <- toupper(get_crs(output_crs, 'code'))
+  output_crs <- toupper(get_crs(output_crs, 'code'))
+
+  if(!output_crs %in% c('EPSG:27700', 'EPSG:4326', 'EPSG:3857')){
+    stop('Output CRS must be one of EPSG:27700, EPSG:4326 or EPSG:3857',
+         call. = FALSE)
+  }
+
+  params[['output_srs']] <- output_crs
 
   if(all(dataset %in% c('DPA', 'LPI'))){
     params[['dataset']] <- paste0(unique(dataset), collapse = ',')
@@ -573,7 +592,7 @@ query_postcode_places <- function(postcode,
 #' A query of addresses based on a property's UPRN.
 #' @param uprn A valid UPRN.
 #' @param output_crs (character or numeric) The output CRS. Defaults to
-#'   “EPSG:27700”.
+#'   “EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.
 #' @param classification_code Classification codes to filter query by.
 #' @param logical_status_code Logical status code to filter query by.
 #' @param dataset (character) The dataset to return. Multiple values can be
@@ -643,7 +662,14 @@ query_uprn_places <- function(uprn,
   }
 
   stopifnot(valid_crs(output_crs))
-  params[['output_srs']] <- toupper(get_crs(output_crs, 'code'))
+  output_crs <- toupper(get_crs(output_crs, 'code'))
+
+  if(!output_crs %in% c('EPSG:27700', 'EPSG:4326', 'EPSG:3857')){
+    stop('Output CRS must be one of EPSG:27700, EPSG:4326 or EPSG:3857',
+         call. = FALSE)
+  }
+
+  params[['output_srs']] <- output_crs
 
   if(all(dataset %in% c('DPA', 'LPI'))){
     params[['dataset']] <- paste0(unique(dataset), collapse = ',')
@@ -736,6 +762,13 @@ places_query <- function(key, endpoint, params, limit){
   # Set user-agent.
   ua <- httr::user_agent('osdatahub-r')
 
+  # Respect throttle limits (600 requests per minute)
+  if(limit >= 60000){
+    waits <- (60 / 599)
+  } else{
+    waits <- 0.0
+  }
+
   # Query loop.
   n_required <- limit
   offset <- 0
@@ -750,7 +783,7 @@ places_query <- function(key, endpoint, params, limit){
     # Update with new offset/limit.
     if(!endpoint %in% c('nearest', 'uprn')){
       params[['offset']] <- offset
-      params[['maxresults']] <- n_required
+      params[['maxresults']] <- limit
     }
 
     url <- httr::modify_url(url,
@@ -791,6 +824,7 @@ places_query <- function(key, endpoint, params, limit){
     else
       n_required <- n_required - nReturned
 
+    Sys.sleep(waits)
   } # End query loop.
 
   return(data)
@@ -830,19 +864,48 @@ process_address_data <- function(response_text){
   # Names of properties.
   nms <- names(jsonlist$results[[1]][[1]])
 
+  # get SRS
+  output_srs <- jsonlist$header$output_srs
+
   # Find coordinate names. Depends on CRS.
-  if(all(c('X_COORDINATE', 'Y_COORDINATE') %in% nms)){
-    xnm <- 'X_COORDINATE'
-    ynm <- 'Y_COORDINATE'
-  } else if(all(c('GEOMETRY_X', 'GEOMETRY_Y') %in% nms)){
-    xnm <- 'GEOMETRY_X'
-    ynm <- 'GEOMETRY_Y'
-  } else if(all(c('LNG', 'LAT') %in% nms)){
-    xnm <- 'LNG'
-    ynm <- 'LAT'
+  if(toupper(output_srs) %in% c("EPSG:4326")){
+    if(all(c('LNG', 'LAT') %in% nms)){
+      xnm <- 'LAT'
+      ynm <- 'LNG'
+    } else{
+      stop('Expected coordinate names not found.', call. = FALSE)
+    }
+  } else if(toupper(output_srs) %in% c("CRS84", "EPSG:3857")){
+    if(all(c('LNG', 'LAT') %in% nms)){
+      xnm <- 'LNG'
+      ynm <- 'LAT'
+    } else{
+      stop('Expected coordinate names not found.', call. = FALSE)
+    }
   } else{
-    stop('Expected coordinate names not found.', call. = FALSE)
+    if(all(c('X_COORDINATE', 'Y_COORDINATE') %in% nms)){
+      xnm <- 'X_COORDINATE'
+      ynm <- 'Y_COORDINATE'
+    } else if(all(c('GEOMETRY_X', 'GEOMETRY_Y') %in% nms)){
+      xnm <- 'GEOMETRY_X'
+      ynm <- 'GEOMETRY_Y'
+    } else{
+      stop('Expected coordinate names not found.', call. = FALSE)
+    }
   }
+
+  # if(all(c('X_COORDINATE', 'Y_COORDINATE') %in% nms)){
+  #   xnm <- 'X_COORDINATE'
+  #   ynm <- 'Y_COORDINATE'
+  # } else if(all(c('GEOMETRY_X', 'GEOMETRY_Y') %in% nms)){
+  #   xnm <- 'GEOMETRY_X'
+  #   ynm <- 'GEOMETRY_Y'
+  # } else if(all(c('LNG', 'LAT') %in% nms)){
+  #   xnm <- 'LNG'
+  #   ynm <- 'LAT'
+  # } else{
+  #   stop('Expected coordinate names not found.', call. = FALSE)
+  # }
 
   # Process features to list compatible with GeoJSON.
   gj <- lapply(jsonlist$results, FUN = function(r){

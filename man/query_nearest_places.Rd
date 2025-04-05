@@ -19,16 +19,16 @@ query_nearest_places(
 }
 \arguments{
 \item{point}{A set of coordinates as a numeric vector, an object of class
-\code{geos}, or an object of class \code{sf}}
+\code{geos}, or an object of class \code{sf}.}
 
 \item{point_crs}{(character or numeric) The identifier for coordinate
 reference system information for the point feature.}
 
-\item{radius}{(numeric) The search radius in metres (max. 1000). Defaults is
+\item{radius}{(numeric) The search radius in metres (max. 1000). Default is
 100.}
 
 \item{output_crs}{(character or numeric) The output CRS. Defaults to
-“EPSG:27700”.}
+“EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.}
 
 \item{classification_code}{Classification codes to filter query by.}
 

@@ -2,7 +2,7 @@
 title: "Plotting API Results: sf, tmap, and maptiles"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{plotting-results}
+  %\VignetteIndexEntry{Plotting API Results}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -45,12 +45,14 @@ This example requests water features along a section of the Glastonbury Canal in
 Somerset from the 'wtr-fts-water-1' collection via the NGD Features API and then
 makes a simple plot to show what was returned.
 
+
 ```{r setup}
 library(osdatahub)
 library(sf)
 ```
 
-```{r, tidy=FALSE}
+
+```{r ngdqry}
 # Choose data
 collection <- 'wtr-fts-water-1'
 
@@ -76,7 +78,7 @@ the `osdatahub` package for `R` provides the option to return the query results
 as a `data.frame` object. Specify the `returnType` argument as 'sf' in
 `query_ngd()`.
 
-```{r}
+```{r readres}
 results_df <- st_read(results, crs = st_crs(crs), quiet = TRUE)
 ```
 We can ignore the warning about setting the CRS in this case because we
@@ -87,7 +89,8 @@ optional styling parameters, to visualize the results. The in-built plotting
 commands of `sf` are detailed in this
 [vignette](https://r-spatial.github.io/sf/articles/sf5.html).
 
-```{r basic-plot, tidy=FALSE}
+
+```{r plotngd}
 # Plot the query extent
 plot(st_geometry(extent$polygon),
      lty = 'dashed',
@@ -101,7 +104,7 @@ plot(st_geometry(results_df),
      col = 'purple',
      add = TRUE)
 
-mtext('Contains OS data © Crown copyright and database rights, 2023.', side = 1, line = 4)
+mtext('Contains OS data © Crown copyright and database rights, 2025.', side = 1, line = 4)
 ```
 
 This plot shows us the features returned form the API and plots them correctly
@@ -122,7 +125,8 @@ objects and can display basemaps.
 This first example demonstrates how to create a plot similar to the basic `sf`
 plot using `tmap`.
 
-```{r basic-tmap-plot, tidy=FALSE}
+
+```{r plotngdtm1}
 library(maptiles)
 library(tmap)
 
@@ -134,7 +138,7 @@ query_plot <- tm_shape(results_df) +
   tm_borders(lty = 'dashed') +
   tm_grid(labels.format = list(big.mark = ""),
                 lines = FALSE) +
-  tm_credits('Contains OS data © Crown copyright and database rights, 2023.',
+  tm_credits('Contains OS data © Crown copyright and database rights, 2025.',
              position = c("LEFT", "BOTTOM"))
 
 query_plot
@@ -143,12 +147,13 @@ query_plot
 To add a basemap we will retrieve the OS Maps tiles using a custom source in
 `maptiles`.
 
-```{r tmap-with-basemap, tidy=FALSE}
+
+```{r plotngdtm2}
 # Define the tile server parameters
 osmaps <- list(src = 'OS Maps',
-               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key=XXXXXX',
+               q = 'https://api.os.uk/maps/raster/v1/zxy/Light_3857/{z}/{x}/{y}.png?key={apikey}',
                sub = '',
-               cit = 'Contains OS data © Crown copyright and database rights, 2023.')
+               cit = 'Contains OS data © Crown copyright and database rights, 2025.')
 
 # Download tiles and compose basemap raster
 tile_maps <- get_tiles(x = extent$polygon,
@@ -174,7 +179,8 @@ is not acceptable, `osdatahub` provides an alternative interface to query and
 download the tiles in either ESPG:27700 or EPSG:3857. However, it requires more
 advanced processing and some additional packages, such as `terra`.
 
-```{r tmap-with-basemap-2, message=FALSE, tidy=FALSE}
+
+```{r plottiles}
 # Download tiles
 res <- query_maps(extent_from_bbox(st_bbox(results_df),
                                    crs = 27700),

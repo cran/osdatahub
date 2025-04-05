@@ -40,7 +40,7 @@ defining the geographic area, or a character string to search.}
 
 \item{...}{Additional parameters (not currently used).}
 
-\item{output_crs}{Output CRS.}
+\item{output_crs}{Output CRS. Optional or will be defined by the extent.}
 
 \item{limit}{(numeric) The maximum number of features to return.
 Default is 100 which is the max return per page from the Data Hub.}

@@ -20,7 +20,7 @@ query_postcode_places(
 \item{postcode}{The postcode search parameter as a character.}
 
 \item{output_crs}{(character or numeric) The output CRS. Defaults to
-“EPSG:27700”.}
+“EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.}
 
 \item{limit}{(numeric) The maximum number of features to return. Default is
 100 which is the max return per page from the Data Hub.}

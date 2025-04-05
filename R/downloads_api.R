@@ -3,8 +3,8 @@
 #'
 #' Query the osdatahub Downloads API to gather information on available data
 #' collections. An API key is not required to list OS OpenData.
-#' @param product_id (character) Retrieve information on a specific data product.
-#'   Optional.
+#' @param product_id (character) Retrieve information on a specific data
+#'   product. Optional.
 #' @param file_name (character) Filter downloads to only include those with this
 #'   file name. Optional.
 #' @param file_format (character) Filter downloads to only include those with

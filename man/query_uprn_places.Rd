@@ -19,7 +19,7 @@ query_uprn_places(
 \item{uprn}{A valid UPRN.}
 
 \item{output_crs}{(character or numeric) The output CRS. Defaults to
-“EPSG:27700”.}
+“EPSG:27700”. Other options are EPSG:4326 or EPSG:3857.}
 
 \item{classification_code}{Classification codes to filter query by.}
 
